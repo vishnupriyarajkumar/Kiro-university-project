@@ -1,0 +1,38 @@
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = join(__dirname, '..', 'data');
+const DATA_FILE = join(DATA_DIR, 'sessions.json');
+
+/** Ensure the data directory exists before reading or writing. */
+function ensureDataDir() {
+  if (!existsSync(DATA_DIR)) {
+    mkdirSync(DATA_DIR, { recursive: true });
+  }
+}
+
+/** Load all sessions from the JSON file. Returns an empty array if the file does not exist. */
+export function loadSessions() {
+  ensureDataDir();
+  if (!existsSync(DATA_FILE)) {
+    return [];
+  }
+  try {
+    const raw = readFileSync(DATA_FILE, 'utf-8');
+    return JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`Failed to parse sessions file (${DATA_FILE}): ${err.message}`);
+  }
+}
+
+/** Persist the full sessions array to the JSON file. */
+export function saveSessions(sessions) {
+  ensureDataDir();
+  try {
+    writeFileSync(DATA_FILE, JSON.stringify(sessions, null, 2), 'utf-8');
+  } catch (err) {
+    throw new Error(`Failed to write sessions file (${DATA_FILE}): ${err.message}`);
+  }
+}

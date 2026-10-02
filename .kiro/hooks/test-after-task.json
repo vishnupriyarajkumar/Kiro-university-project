@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run Tests After Task",
+      "trigger": "PostTaskExec",
+      "description": "Automatically runs the full Jest test suite after each spec task is marked completed, ensuring no regressions.",
+      "action": {
+        "type": "command",
+        "command": "cd /d v:\\kiro-university-project && npm test 2>&1 && echo \"All tests passed!\" || echo \"Some tests failed - review output above\"",
+        "timeout": 60
+      }
+    }
+  ]
+}

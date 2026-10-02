@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Lint JS on Save",
+      "trigger": "PostFileSave",
+      "description": "Runs ESLint on any .js file whenever it is saved, giving immediate feedback on code style violations.",
+      "matcher": "\\.(js)$",
+      "action": {
+        "type": "command",
+        "command": "cd /d v:\\kiro-university-project && npx eslint --no-eslintrc -c .eslintrc.json \"%file%\" 2>&1 && echo \"ESLint passed\" || echo \"ESLint found issues - check output above\"",
+        "timeout": 30
+      }
+    }
+  ]
+}
