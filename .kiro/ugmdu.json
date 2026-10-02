@@ -1,6 +1,5 @@
 {
     "campaignId":  "kiro-university-2026",
-    "participantId":  "",
     "lessons":  [
 
                 ],
@@ -9,5 +8,7 @@
                  ],
     "notes":  {
 
-              }
+              },
+    "repoUrl":  "https://github.com/vishnupriyarajkumar/Kiro-university-project",
+    "participantId":  "44a8e458-50f1-7045-a07b-a2fe046ab1aa"
 }
