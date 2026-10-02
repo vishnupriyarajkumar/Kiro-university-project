@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test:property": "node --experimental-vm-modules node_modules/.bin/jest tests/property",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:property": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/property",
     "lint": "eslint src/ tests/ --ext .js"
   },
   "keywords": ["cli", "pomodoro", "productivity", "focus", "kiro"],
