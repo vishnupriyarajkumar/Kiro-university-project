@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "pomodoro-filesystem": {
+      "command": "python",
+      "args": [
+        "-m", "uv", "tool", "run",
+        "mcp-server-filesystem",
+        "data",
+        "src",
+        "tests"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false
+    }
+  }
+}
