@@ -1,0 +1,309 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Implement `getMondayDate(referenceDate)` and `getSundayDate(referenceDate)`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018587571
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018599684
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018695718
+      }
+    ],
+    "1.2 Implement internal helpers `buildSummarySection(sessions)` and `buildDailyBreakdown(sessions)`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018587762
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018702993
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019254314
+      }
+    ],
+    "1.3 Implement `generateWeeklyReport(sessions, referenceDate)`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018587896
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019282176
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019430556
+      }
+    ],
+    "2.1 Implement `writeMarkdownFile(filePath, content)`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018588004
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018703200
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019254596
+      }
+    ],
+    "3.1 Wire the `export` command using Commander.js": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018588085
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019438481
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019622253
+      }
+    ],
+    "3.2 Implement `exportAction` validation and orchestration": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018588170
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019630481
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019898363
+      }
+    ],
+    "4. Checkpoint — verify wiring compiles and existing tests still pass": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018588261
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791020037089
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791020493939
+      }
+    ],
+    "5.1 Write unit tests for `getMondayDate` and `getSundayDate`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018588352
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019439008
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019622641
+      }
+    ],
+    "6.1 Write unit tests for `writeMarkdownFile` — invalid argument rejection": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018588439
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019631012
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019899113
+      }
+    ],
+    "8. Final checkpoint — full test suite green": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791018588537
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791020503474
+      },
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791020720645
+      }
+    ],
+    "2. Extend `src/storage.js` with `writeMarkdownFile`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019254826
+      }
+    ],
+    "1. Create `src/report.js` — pure Markdown formatting module": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019430638
+      }
+    ],
+    "5. Write unit tests for `src/report.js` in `tests/unit/report.test.js`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019622757
+      }
+    ],
+    "3. Add `export` command to `src/index.js`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019898467
+      }
+    ],
+    "6. Add `writeMarkdownFile` unit tests to `tests/unit/storage.test.js`": [
+      {
+        "executionId": "df3c9107-54ff-4204-b1b0-c687135da4f7",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791019899227
+      }
+    ],
+    "5.2 Write unit tests for `generateWeeklyReport` — empty and single-session cases": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791023887707
+      },
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024773398
+      }
+    ],
+    "5.3 Write unit tests for `generateWeeklyReport` — multi-session ordering and formatting": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791023888057
+      },
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024775649
+      }
+    ],
+    "6.2 Write unit tests for `writeMarkdownFile` — successful write": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791023888477
+      },
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791023903437
+      }
+    ],
+    "7.1 Property 1 — H1 heading encodes the correct week range": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024792150
+      }
+    ],
+    "7.2 Property 2 — Summary section correctness": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024792947
+      }
+    ],
+    "7.3 Property 3 — Daily breakdown structure and ordering": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024793199
+      }
+    ],
+    "7.4 Property 4 — Session ordering within a day by startTime": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024793635
+      }
+    ],
+    "7.5 Property 5 — Determinism": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024793943
+      }
+    ],
+    "7.6 Property 6 — Session data inclusion round-trip": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024802803
+      }
+    ],
+    "7.7 Property 7 — writeMarkdownFile rejects invalid arguments": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024804120
+      }
+    ],
+    "7.8 Property 8 — Invalid sessions excluded, valid sessions included": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024804548
+      }
+    ],
+    "7.9 Property 9 — getMondayDate correctness and idempotence": [
+      {
+        "executionId": "a3257f37-f7c7-40ba-9145-39907f32486a",
+        "chatSessionId": "sess_9fbf1a25-a4e3-4a0f-923f-f7092df9e8a1",
+        "timestamp": 1791024805518
+      }
+    ]
+  }
+}

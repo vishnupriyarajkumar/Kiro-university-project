@@ -36,3 +36,22 @@ export function saveSessions(sessions) {
     throw new Error(`Failed to write sessions file (${DATA_FILE}): ${err.message}`);
   }
 }
+
+/** Writes a Markdown string to the given file path, creating parent directories if necessary. */
+export function writeMarkdownFile(filePath, content) {
+  if (filePath == null || typeof filePath !== 'string' || filePath.trim() === '') {
+    throw new Error('writeMarkdownFile: filePath must be a non-empty, non-whitespace string');
+  }
+  if (content == null || content === '') {
+    throw new Error('writeMarkdownFile: content must be a non-empty string');
+  }
+
+  const dir = dirname(filePath);
+  mkdirSync(dir, { recursive: true });
+
+  try {
+    writeFileSync(filePath, content, 'utf-8');
+  } catch (err) {
+    throw new Error(`Failed to write Markdown file (${filePath}): ${err.message}`);
+  }
+}

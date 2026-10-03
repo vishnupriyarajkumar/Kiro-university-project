@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { loadSessions, saveSessions } from './storage.js';
+import path from 'path';
+import { loadSessions, saveSessions, writeMarkdownFile } from './storage.js';
 import { validateSession, createSession, filterByDate, filterByWeek } from './sessions.js';
 import {
   totalMinutes,
@@ -10,6 +11,7 @@ import {
   longestStreak,
   mostProductiveDay,
 } from './stats.js';
+import { generateWeeklyReport, getMondayDate } from './report.js';
 
 const program = new Command();
 
@@ -140,5 +142,52 @@ program
       process.exit(1);
     }
   });
+
+// ── export command ───────────────────────────────────────────────────────────
+function exportAction(options) {
+  // Validate --output at the CLI boundary before any I/O
+  if (options.output !== undefined && options.output.trim() === '') {
+    console.error(chalk.red.bold('Error: ') + 'Output path cannot be empty.');
+    process.exit(1);
+  }
+
+  let sessions;
+  try {
+    sessions = loadSessions();
+  } catch (err) {
+    console.error(chalk.red.bold('Error: ') + err.message);
+    process.exit(1);
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const weekSessions = filterByWeek(sessions, today);
+
+  // Validate each session; warn and skip invalids rather than aborting
+  const validSessions = weekSessions.filter((s) => {
+    const { valid } = validateSession(s.description, s.duration);
+    if (!valid) {
+      console.error(chalk.yellow.bold('Warning: ') + `Skipping invalid session ${s.id}`);
+    }
+    return valid;
+  });
+
+  const markdown = generateWeeklyReport(validSessions, today);
+  const outputPath = options.output ?? path.resolve(`./pomodoro-week-${getMondayDate(today)}.md`);
+
+  try {
+    writeMarkdownFile(outputPath, markdown);
+    console.log(chalk.green.bold('\n📄 Report exported!'));
+    console.log(chalk.white('   ') + chalk.cyan(path.resolve(outputPath)));
+  } catch (err) {
+    console.error(chalk.red.bold('Error: ') + err.message);
+    process.exit(1);
+  }
+}
+
+program
+  .command('export')
+  .description("Export this week's focus sessions as a Markdown report")
+  .option('-o, --output <path>', 'Output file path')
+  .action(exportAction);
 
 program.parse(process.argv);
