@@ -1,3 +1,9 @@
+---
+name: Log a Pomodoro Session
+description: Log a focus session using the Pomodoro CLI tool
+keywords: [log, session, pomodoro, focus, timer]
+---
+
 # Log a Pomodoro Session
 
 Use this skill when the user wants to log a focus session using the Pomodoro CLI.

@@ -1,3 +1,9 @@
+---
+name: Generate a Weekly Report
+description: Generate a weekly summary of Pomodoro sessions with streaks and productivity stats
+keywords: [weekly, report, stats, streak, productivity, export]
+---
+
 # Generate a Weekly Report
 
 Use this skill when the user wants a summary of their Pomodoro sessions for the current or a past week.
@@ -16,11 +22,10 @@ Use this skill when the user wants a summary of their Pomodoro sessions for the 
    - Current streak (consecutive days with at least one session)
    - Most productive day
 
-3. To export the report to a file:
+3. To export the report to a Markdown file:
    ```bash
    node src/index.js report --week --export
    ```
-   This saves a Markdown report to the project root.
 
 ## Tips
 - Streaks are calculated from today backwards — a gap of one day breaks the streak.
