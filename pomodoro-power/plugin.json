@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pomodoro-logger",
   "version": "1.0.0",
   "description": "Helps you log, track, and analyze Pomodoro focus sessions from the CLI. Includes skills for logging sessions, generating weekly reports, and reviewing streaks.",
