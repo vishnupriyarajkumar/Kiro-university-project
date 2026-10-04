@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro Logger — Home</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+
+    <!-- Hero -->
+    <div class="hero">
+      <span class="hero-emoji">🍅</span>
+      <h1 class="hero-title">Stay in the Zone</h1>
+      <p class="hero-sub">Log focus sessions, track streaks, and understand your productivity patterns — all in one place.</p>
+      <div class="hero-cta-row">
+        <a href="/timer.html" class="btn-hero-primary">▶ Start Timer</a>
+        <a href="/log.html"   class="btn-hero-secondary">📝 Log Session</a>
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <p class="section-title">Today at a glance</p>
+    <div class="quick-stats">
+      <div class="qs-card">
+        <div class="qs-icon">🍅</div>
+        <div class="qs-value" id="qs-today">—</div>
+        <div class="qs-label">Sessions Today</div>
+      </div>
+      <div class="qs-card">
+        <div class="qs-icon">⏱️</div>
+        <div class="qs-value" id="qs-mins">—</div>
+        <div class="qs-label">Minutes Today</div>
+      </div>
+      <div class="qs-card">
+        <div class="qs-icon">🔥</div>
+        <div class="qs-value" id="qs-streak">—</div>
+        <div class="qs-label">Day Streak</div>
+      </div>
+    </div>
+
+    <!-- Feature cards -->
+    <p class="section-title">What you can do</p>
+    <div class="feature-grid">
+      <a href="/timer.html" class="feature-card">
+        <div class="feature-icon">⏰</div>
+        <div class="feature-title">Focus Timer</div>
+        <div class="feature-desc">25-minute Pomodoro cycles with auto rest, chime alerts, confetti on cycle complete, and keyboard shortcuts.</div>
+      </a>
+      <a href="/log.html" class="feature-card">
+        <div class="feature-icon">📝</div>
+        <div class="feature-title">Log Sessions</div>
+        <div class="feature-desc">Manually log any focus session with a description and duration. View your most recent sessions instantly.</div>
+      </a>
+      <a href="/history.html" class="feature-card">
+        <div class="feature-icon">📅</div>
+        <div class="feature-title">Session History</div>
+        <div class="feature-desc">Browse today's sessions, navigate week by week, and see your 12-week focus heatmap.</div>
+      </a>
+      <a href="/stats.html" class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Analytics</div>
+        <div class="feature-desc">Total sessions, streaks, average duration, most productive day, and a weekly bar chart.</div>
+      </a>
+      <a href="/report.html" class="feature-card">
+        <div class="feature-icon">📄</div>
+        <div class="feature-title">Weekly Report</div>
+        <div class="feature-desc">Generate a Markdown report of your week's sessions. Preview it here or download to your desktop.</div>
+      </a>
+    </div>
+
+    <!-- Recent sessions -->
+    <p class="section-title">Recent sessions</p>
+    <div id="recent-sessions"><div class="empty-card">Loading…</div></div>
+
+  </div>
+
+  <script type="module">
+    import { mountNav } from './nav.js';
+    mountNav('home');
+
+    const API = '';
+
+    async function loadQuickStats() {
+      try {
+        const [todayData, statsData] = await Promise.all([
+          fetch(API + '/api/sessions/today').then(r => r.json()),
+          fetch(API + '/api/stats').then(r => r.json()),
+        ]);
+        document.getElementById('qs-today').textContent  = todayData.sessions.length;
+        document.getElementById('qs-mins').textContent   = todayData.totalMinutes;
+        document.getElementById('qs-streak').textContent = statsData.currentStreak;
+      } catch (_) { /* leave as — */ }
+    }
+
+    async function loadRecentSessions() {
+      const el = document.getElementById('recent-sessions');
+      try {
+        const data = await fetch(API + '/api/sessions/today').then(r => r.json());
+        if (data.sessions.length === 0) {
+          el.innerHTML = '<div class="empty-card">No sessions today yet — <a href="/timer.html" style="color:var(--green-dark);font-weight:700">start your first timer</a>.</div>';
+          return;
+        }
+        const items = [...data.sessions].reverse().slice(0, 5).map(s => `
+          <div class="session-item">
+            <div>
+              <div class="session-desc">${esc(s.description)}</div>
+              <div class="session-meta">${s.date}</div>
+            </div>
+            <span class="session-dur">${s.duration} min</span>
+          </div>`).join('');
+        el.innerHTML = `<div class="sessions-card"><h3>Today's sessions</h3>${items}
+          <div class="total-row"><span>Total</span><span>${data.totalMinutes} min</span></div>
+        </div>`;
+      } catch (err) {
+        el.innerHTML = `<div class="empty-card">Could not load sessions.</div>`;
+      }
+    }
+
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    loadQuickStats();
+    loadRecentSessions();
+  </script>
+</body>
+</html>

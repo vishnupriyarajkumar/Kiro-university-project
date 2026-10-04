@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro — History</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+
+    <p class="section-title">📅 Session History</p>
+
+    <!-- Sub-tabs -->
+    <div class="history-tabs" role="tablist">
+      <button class="history-tab active" role="tab" data-htab="today"   aria-selected="true">Today</button>
+      <button class="history-tab"        role="tab" data-htab="week"    aria-selected="false">This Week</button>
+      <button class="history-tab"        role="tab" data-htab="heatmap" aria-selected="false">🔥 Heatmap</button>
+    </div>
+
+    <!-- Today panel -->
+    <div class="history-panel active" id="hpanel-today">
+      <div id="today-content"><p class="loading">Loading…</p></div>
+    </div>
+
+    <!-- Week panel -->
+    <div class="history-panel" id="hpanel-week">
+      <div class="week-nav">
+        <button class="week-nav-btn" id="week-prev">&#8592; Prev</button>
+        <span   class="week-nav-label" id="week-nav-label">This week</span>
+        <button class="week-nav-btn" id="week-next" disabled>Next &#8594;</button>
+      </div>
+      <div id="week-content" class="gap-12"><p class="loading">Loading…</p></div>
+    </div>
+
+    <!-- Heatmap panel -->
+    <div class="history-panel" id="hpanel-heatmap">
+      <div id="heatmap-content"><p class="loading">Loading…</p></div>
+    </div>
+
+  </div>
+
+  <!-- shared tooltip -->
+  <div id="heatmap-tooltip" class="heatmap-tooltip"></div>
+
+  <script type="module" src="pages/history.js"></script>
+</body>
+</html>

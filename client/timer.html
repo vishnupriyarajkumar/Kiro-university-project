@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro — Focus Timer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="timer-page">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <a href="/" class="back-btn" aria-label="Home">&#8592;</a>
+      <span class="app-title">Focus Timer</span>
+      <button class="menu-btn" aria-label="Menu">&#8942;</button>
+    </div>
+
+    <!-- Session progress dots -->
+    <div class="session-dots" id="session-dots">
+      <div class="dot done"   data-index="0"></div>
+      <div class="dot active" data-index="1"></div>
+      <div class="dot"        data-index="2"></div>
+      <div class="dot"        data-index="3"></div>
+    </div>
+
+    <!-- Timer card -->
+    <div class="timer-card" id="timer-card">
+
+      <div class="timer-ring-wrapper">
+        <svg class="timer-svg" viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="ring-track"    cx="100" cy="100" r="90" />
+          <circle class="ring-progress" cx="100" cy="100" r="90" id="ring-progress" />
+          <circle class="ring-dot"      cx="100" cy="10"  r="5"  id="ring-dot" />
+        </svg>
+        <div class="timer-center">
+          <div class="timer-display" id="timer-display">25:00</div>
+        </div>
+      </div>
+
+      <div class="mode-label" id="mode-label">Work Mode</div>
+      <div class="mode-icon"  id="mode-icon">💻</div>
+
+      <button class="control-btn" id="control-btn" aria-label="Start timer">&#9654;</button>
+      <div class="control-label"  id="control-label">Start</div>
+
+      <div class="kbd-hints">
+        <span class="kbd">Space</span> play/pause &nbsp;
+        <span class="kbd">R</span> reset &nbsp;
+        <span class="kbd">W</span>/<span class="kbd">B</span> mode
+      </div>
+
+    </div>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle-strip">
+      <button class="mode-toggle-btn work-btn active" id="work-mode-btn">Work Mode</button>
+      <button class="mode-toggle-btn rest-btn"        id="rest-mode-btn">Rest Mode</button>
+    </div>
+
+    <!-- Quick-log completed session -->
+    <div style="margin-top:20px">
+      <div id="quick-log-area" style="display:none">
+        <div class="log-card">
+          <h3>💾 Save this session?</h3>
+          <div class="field">
+            <label for="ql-description">What did you work on?</label>
+            <input id="ql-description" type="text" placeholder="e.g. Deep work on feature X" />
+          </div>
+          <button class="btn-primary" id="ql-save-btn">Save Session</button>
+          <button class="btn-secondary" id="ql-skip-btn" style="margin-top:8px;width:100%">Skip</button>
+          <div id="ql-message" class="message hidden"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Confetti canvas -->
+  <canvas id="confetti-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:999"></canvas>
+
+  <script type="module">
+    import { mountNav } from './nav.js';
+    mountNav('timer');
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

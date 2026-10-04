@@ -87,48 +87,48 @@ Implement the `pomodoro export` command as a read-and-format pipeline: load sess
     - Write to a path whose parent directory does not yet exist, verify directory is created
     - _Requirements: 4.1, 4.2_
 
-- [ ] 7. Write property-based tests in `tests/property/report.property.test.js`
-  - [-]* 7.1 Property 1 — H1 heading encodes the correct week range
+- [x] 7. Write property-based tests in `tests/property/report.property.test.js`
+  - [x]* 7.1 Property 1 — H1 heading encodes the correct week range
     - **Property 1: H1 heading encodes the correct week range**
     - Generate arbitrary `YYYY-MM-DD` reference dates; assert first line matches `# Weekly Focus Report: <getMondayDate(ref)> – <getSundayDate(ref)>`
     - **Validates: Requirements 2.1, 6.2**
 
-  - [-]* 7.2 Property 2 — Summary section correctness
+  - [x]* 7.2 Property 2 — Summary section correctness
     - **Property 2: Summary section correctness**
     - Use `sessionArb` (non-empty array); assert `## Summary` block contains correct total minutes, session count, and `roundHalfUp`-ed average
     - **Validates: Requirements 2.2, 2.3**
 
-  - [-]* 7.3 Property 3 — Daily breakdown structure and ordering
+  - [x]* 7.3 Property 3 — Daily breakdown structure and ordering
     - **Property 3: Daily breakdown structure and ordering**
     - Use `sessionArb` spanning multiple dates; assert every active date has an `### <date>` heading, no inactive date has a heading, and headings appear in ascending alphabetical order
     - **Validates: Requirements 2.4, 2.6**
 
-  - [-]* 7.4 Property 4 — Session ordering within a day by startTime
+  - [x]* 7.4 Property 4 — Session ordering within a day by startTime
     - **Property 4: Session ordering within a day by startTime**
     - Use `sessionArb` with at least 2 sessions on the same date; parse rendered list items and assert ascending `startTime` order
     - **Validates: Requirements 2.5**
 
-  - [-]* 7.5 Property 5 — Determinism
+  - [x]* 7.5 Property 5 — Determinism
     - **Property 5: Determinism**
     - Call `generateWeeklyReport` twice with identical inputs; assert strict string equality
     - **Validates: Requirements 3.2**
 
-  - [-]* 7.6 Property 6 — Session data inclusion round-trip
+  - [x]* 7.6 Property 6 — Session data inclusion round-trip
     - **Property 6: Session data inclusion round-trip**
     - For every session in a non-empty array, assert `output.includes(session.description)` and `output.includes(\`\${session.duration} min\`)`
     - **Validates: Requirements 3.3**
 
-  - [-]* 7.7 Property 7 — writeMarkdownFile rejects invalid arguments
+  - [x]* 7.7 Property 7 — writeMarkdownFile rejects invalid arguments
     - **Property 7: writeMarkdownFile rejects invalid arguments**
     - Use `fc.oneof` for null/empty/whitespace filePath and null/empty content; assert every call throws
     - **Validates: Requirements 4.5, 5.1**
 
-  - [-]* 7.8 Property 8 — Invalid sessions excluded, valid sessions included
+  - [x]* 7.8 Property 8 — Invalid sessions excluded, valid sessions included
     - **Property 8: Invalid sessions excluded, valid sessions included**
     - Use `invalidSessionArb` mixed with `sessionArb`; assert no content from invalid sessions leaks into output
     - **Validates: Requirements 5.3**
 
-  - [-]* 7.9 Property 9 — getMondayDate correctness and idempotence
+  - [x]* 7.9 Property 9 — getMondayDate correctness and idempotence
     - **Property 9: getMondayDate correctness and idempotence**
     - Assert `getUTCDay()` of result is `1` (Monday), result is within `[d - 6, d]`, and `getMondayDate(getMondayDate(d)) === getMondayDate(d)`
     - **Validates: Requirements 6.2**

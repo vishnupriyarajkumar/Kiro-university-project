@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro — Log Session</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-narrow">
+
+    <p class="section-title">📝 Log a Session</p>
+    <p class="section-subtitle">Record a focus session you just completed.</p>
+
+    <div class="log-card">
+      <form id="log-form">
+        <div class="field">
+          <label for="description">What did you work on?</label>
+          <input id="description" type="text" placeholder="e.g. Deep work on API design" required />
+        </div>
+        <div class="field">
+          <label for="duration">Duration (minutes, 1–120)</label>
+          <input id="duration" type="number" min="1" max="120" placeholder="25" required />
+        </div>
+        <button type="submit" class="btn-primary">🍅 Log Session</button>
+      </form>
+      <div id="log-message" class="message hidden"></div>
+    </div>
+
+    <p class="section-title" style="margin-top:28px">Recent sessions</p>
+    <div id="recent-content"><p class="loading">Loading…</p></div>
+
+  </div>
+
+  <script type="module" src="pages/log.js"></script>
+</body>
+</html>
