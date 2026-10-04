@@ -13,14 +13,16 @@
     <p class="section-subtitle">Record a focus session you just completed.</p>
 
     <div class="log-card">
-      <form id="log-form">
+      <form id="log-form" novalidate>
         <div class="field">
           <label for="description">What did you work on?</label>
           <input id="description" type="text" placeholder="e.g. Deep work on API design" required />
+          <span class="field-error hidden" id="description-error">Description cannot be empty.</span>
         </div>
         <div class="field">
           <label for="duration">Duration (minutes, 1–120)</label>
           <input id="duration" type="number" min="1" max="120" placeholder="25" required />
+          <span class="field-error hidden" id="duration-error">Duration must be a number between 1 and 120.</span>
         </div>
         <button type="submit" class="btn-primary">🍅 Log Session</button>
       </form>
@@ -33,5 +35,70 @@
   </div>
 
   <script type="module" src="pages/log.js"></script>
+  <script>
+    // Client-side validation — runs before the form submits to the API
+    const form = document.getElementById('log-form');
+    const descInput = document.getElementById('description');
+    const durInput = document.getElementById('duration');
+    const descError = document.getElementById('description-error');
+    const durError = document.getElementById('duration-error');
+
+    function validateDescription() {
+      const value = descInput.value.trim();
+      if (value.length === 0) {
+        descInput.classList.add('input-invalid');
+        descInput.classList.remove('input-valid');
+        descError.classList.remove('hidden');
+        return false;
+      }
+      descInput.classList.remove('input-invalid');
+      descInput.classList.add('input-valid');
+      descError.classList.add('hidden');
+      return true;
+    }
+
+    function validateDuration() {
+      const value = parseInt(durInput.value, 10);
+      if (isNaN(value) || value < 1 || value > 120) {
+        durInput.classList.add('input-invalid');
+        durInput.classList.remove('input-valid');
+        durError.classList.remove('hidden');
+        return false;
+      }
+      durInput.classList.remove('input-invalid');
+      durInput.classList.add('input-valid');
+      durError.classList.add('hidden');
+      return true;
+    }
+
+    // Live validation on blur
+    descInput.addEventListener('blur', validateDescription);
+    durInput.addEventListener('blur', validateDuration);
+
+    // Clear error state on input
+    descInput.addEventListener('input', () => {
+      if (descInput.value.trim().length > 0) {
+        descInput.classList.remove('input-invalid');
+        descError.classList.add('hidden');
+      }
+    });
+    durInput.addEventListener('input', () => {
+      const v = parseInt(durInput.value, 10);
+      if (!isNaN(v) && v >= 1 && v <= 120) {
+        durInput.classList.remove('input-invalid');
+        durError.classList.add('hidden');
+      }
+    });
+
+    // Block submit if invalid
+    form.addEventListener('submit', (e) => {
+      const descOk = validateDescription();
+      const durOk = validateDuration();
+      if (!descOk || !durOk) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+    }, true); // capture phase — runs before the module script's submit handler
+  </script>
 </body>
 </html>

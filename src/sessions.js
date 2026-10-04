@@ -37,6 +37,37 @@ export function filterByDate(sessions, date) {
   return sessions.filter((s) => s.date === date);
 }
 
+/** Delete a session by ID. Returns { found, sessions } where sessions is the updated array. */
+export function deleteSession(sessions, id) {
+  const index = sessions.findIndex((s) => s.id === id);
+  if (index === -1) return { found: false, sessions };
+  const updated = [...sessions.slice(0, index), ...sessions.slice(index + 1)];
+  return { found: true, sessions: updated };
+}
+
+/** Edit a session's description and/or duration by ID. Returns { found, session, sessions }. */
+export function editSession(sessions, id, updates) {
+  const index = sessions.findIndex((s) => s.id === id);
+  if (index === -1) return { found: false, sessions };
+
+  const existing = sessions[index];
+  const newDescription = updates.description !== undefined ? updates.description.trim() : existing.description;
+  const newDuration = updates.duration !== undefined ? Number(updates.duration) : existing.duration;
+
+  const { valid, errors } = validateSession(newDescription, newDuration);
+  if (!valid) return { found: true, valid: false, errors, sessions };
+
+  const updated = { ...existing, description: newDescription, duration: newDuration };
+  const updatedSessions = [...sessions.slice(0, index), updated, ...sessions.slice(index + 1)];
+  return { found: true, valid: true, session: updated, sessions: updatedSessions };
+}
+
+/** Search sessions by keyword in description (case-insensitive). */
+export function searchSessions(sessions, keyword) {
+  const lower = keyword.toLowerCase();
+  return sessions.filter((s) => s.description.toLowerCase().includes(lower));
+}
+
 /** Filter sessions to those within the Mon–Sun week containing referenceDate (YYYY-MM-DD). */
 export function filterByWeek(sessions, referenceDate) {
   const ref = new Date(referenceDate + 'T00:00:00.000Z');

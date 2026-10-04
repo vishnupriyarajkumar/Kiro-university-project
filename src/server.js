@@ -1,38 +1,24 @@
 /**
  * Pomodoro Session Logger — HTTP API server
- * Uses only Node.js built-in modules (http, url, path, fs).
- * Serves the client/ static files and exposes a JSON REST API.
+ * Uses Node.js built-in http module + Mongoose for MongoDB persistence.
+ * Serves client/ static files and exposes a JSON REST API.
  */
 
+import 'dotenv/config';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { connectDB } from './db.js';
 import { validateSession, createSession, filterByDate, filterByWeek } from './sessions.js';
-import { loadSessions, saveSessions } from './storage.js';
+import { loadSessions, saveSession } from './storage.js';
 import { totalMinutes, averageDuration, currentStreak, longestStreak, mostProductiveDay, groupByDay } from './stats.js';
 import { generateWeeklyReport, getMondayDate } from './report.js';
 
-/** Build a heatmap: last 84 days (12 weeks) of daily focus minutes. */
-function buildHeatmap(sessions) {
-  const today = new Date();
-  const result = [];
-  for (let i = 83; i >= 0; i--) {
-    const d = new Date(today);
-    d.setUTCDate(today.getUTCDate() - i);
-    const dateStr = d.toISOString().slice(0, 10);
-    const mins = sessions
-      .filter(s => s.date === dateStr)
-      .reduce((sum, s) => sum + s.duration, 0);
-    result.push({ date: dateStr, minutes: mins });
-  }
-  return result;
-}
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_DIR = path.join(__dirname, '..', 'client');
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const MIME = {
   '.html': 'text/html',
@@ -41,6 +27,8 @@ const MIME = {
   '.json': 'application/json',
   '.ico':  'image/x-icon',
 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function readBody(req) {
   return new Promise((resolve) => {
@@ -64,7 +52,7 @@ function text(res, status, content, contentType = 'text/plain') {
 }
 
 function serveStatic(res, filePath) {
-  const ext = path.extname(filePath);
+  const ext  = path.extname(filePath);
   const mime = MIME[ext] || 'text/plain';
   try {
     const content = fs.readFileSync(filePath);
@@ -76,13 +64,32 @@ function serveStatic(res, filePath) {
   }
 }
 
+/** Build a heatmap: last 84 days (12 weeks) of daily focus minutes. */
+function buildHeatmap(sessions) {
+  const today  = new Date();
+  const result = [];
+  for (let i = 83; i >= 0; i--) {
+    const d       = new Date(today);
+    d.setUTCDate(today.getUTCDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const mins    = sessions
+      .filter(s => s.date === dateStr)
+      .reduce((sum, s) => sum + s.duration, 0);
+    result.push({ date: dateStr, minutes: mins });
+  }
+  return result;
+}
+
+// ── Request router ────────────────────────────────────────────────────────────
+
 async function handleRequest(req, res) {
   const { pathname } = new URL(req.url, `http://localhost:${PORT}`);
   const method = req.method;
 
+  // CORS pre-flight
   if (method === 'OPTIONS') {
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin':  '*',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
     });
@@ -93,32 +100,32 @@ async function handleRequest(req, res) {
   // GET /api/sessions/today
   if (pathname === '/api/sessions/today' && method === 'GET') {
     try {
-      const sessions = loadSessions();
-      const today = new Date().toISOString().slice(0, 10);
+      const sessions     = await loadSessions();
+      const today        = new Date().toISOString().slice(0, 10);
       const todaySessions = filterByDate(sessions, today);
       json(res, 200, { date: today, sessions: todaySessions, totalMinutes: totalMinutes(todaySessions) });
     } catch (err) { json(res, 500, { error: err.message }); }
     return;
   }
 
-  // GET /api/sessions/week?date=YYYY-MM-DD  (date optional, defaults to today)
+  // GET /api/sessions/week?date=YYYY-MM-DD
   if (pathname === '/api/sessions/week' && method === 'GET') {
     try {
-      const reqUrl = new URL(req.url, `http://localhost:${PORT}`);
+      const reqUrl    = new URL(req.url, `http://localhost:${PORT}`);
       const dateParam = reqUrl.searchParams.get('date');
-      const sessions = loadSessions();
-      const refDate = dateParam || new Date().toISOString().slice(0, 10);
+      const sessions  = await loadSessions();
+      const refDate   = dateParam || new Date().toISOString().slice(0, 10);
       const weekSessions = filterByWeek(sessions, refDate);
-      const grouped = groupByDay(weekSessions);
+      const grouped   = groupByDay(weekSessions);
       json(res, 200, { monday: getMondayDate(refDate), refDate, sessions: weekSessions, grouped, totalMinutes: totalMinutes(weekSessions) });
     } catch (err) { json(res, 500, { error: err.message }); }
     return;
   }
 
-  // GET /api/heatmap  — last 84 days of daily focus minutes
+  // GET /api/heatmap
   if (pathname === '/api/heatmap' && method === 'GET') {
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       json(res, 200, { heatmap: buildHeatmap(sessions) });
     } catch (err) { json(res, 500, { error: err.message }); }
     return;
@@ -127,16 +134,38 @@ async function handleRequest(req, res) {
   // GET /api/stats
   if (pathname === '/api/stats' && method === 'GET') {
     try {
-      const sessions = loadSessions();
-      const today = new Date().toISOString().slice(0, 10);
+      const sessions = await loadSessions();
+      const today    = new Date().toISOString().slice(0, 10);
       json(res, 200, {
-        totalSessions: sessions.length,
-        totalMinutes: totalMinutes(sessions),
-        averageDuration: averageDuration(sessions),
-        currentStreak: currentStreak(sessions, today),
-        longestStreak: longestStreak(sessions),
+        totalSessions:    sessions.length,
+        totalMinutes:     totalMinutes(sessions),
+        averageDuration:  averageDuration(sessions),
+        currentStreak:    currentStreak(sessions, today),
+        longestStreak:    longestStreak(sessions),
         mostProductiveDay: mostProductiveDay(sessions),
       });
+    } catch (err) { json(res, 500, { error: err.message }); }
+    return;
+  }
+
+  // GET /api/stats/weekly — Mon–Sun daily minutes for bar chart
+  if (pathname === '/api/stats/weekly' && method === 'GET') {
+    try {
+      const sessions  = await loadSessions();
+      const today     = new Date();
+      const todayStr  = today.toISOString().slice(0, 10);
+      const DAY_ABBR  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const dayOfWeek    = today.getUTCDay();
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d       = new Date(today);
+        d.setUTCDate(today.getUTCDate() + diffToMonday + i);
+        const dateStr = d.toISOString().slice(0, 10);
+        const mins    = sessions.filter(s => s.date === dateStr).reduce((sum, s) => sum + s.duration, 0);
+        days.push({ label: DAY_ABBR[d.getUTCDay()], date: dateStr, minutes: mins, isToday: dateStr === todayStr });
+      }
+      json(res, 200, { days });
     } catch (err) { json(res, 500, { error: err.message }); }
     return;
   }
@@ -144,10 +173,10 @@ async function handleRequest(req, res) {
   // GET /api/report
   if (pathname === '/api/report' && method === 'GET') {
     try {
-      const sessions = loadSessions();
-      const today = new Date().toISOString().slice(0, 10);
+      const sessions     = await loadSessions();
+      const today        = new Date().toISOString().slice(0, 10);
       const weekSessions = filterByWeek(sessions, today);
-      const markdown = generateWeeklyReport(weekSessions, today);
+      const markdown     = generateWeeklyReport(weekSessions, today);
       text(res, 200, markdown, 'text/plain');
     } catch (err) { json(res, 500, { error: err.message }); }
     return;
@@ -162,9 +191,8 @@ async function handleRequest(req, res) {
       const dur = parseInt(duration, 10);
       const { valid, errors } = validateSession(description, dur);
       if (!valid) { json(res, 400, { error: errors.join(' ') }); return; }
-      const sessions = loadSessions();
       const session = createSession(description, dur);
-      saveSessions([...sessions, session]);
+      await saveSession(session);
       json(res, 201, { session });
     } catch (err) { json(res, 500, { error: err.message }); }
     return;
@@ -177,14 +205,22 @@ async function handleRequest(req, res) {
   serveStatic(res, staticPath);
 }
 
-const server = http.createServer((req, res) => {
-  handleRequest(req, res).catch((err) => {
-    console.error('Unhandled error:', err);
-    res.writeHead(500);
-    res.end('Internal server error');
-  });
-});
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
 
-server.listen(PORT, () => {
-  console.log(`\n🍅 Pomodoro Web App running at http://localhost:${PORT}\n`);
-});
+async function bootstrap() {
+  await connectDB();
+
+  const server = http.createServer((req, res) => {
+    handleRequest(req, res).catch((err) => {
+      console.error('Unhandled error:', err);
+      res.writeHead(500);
+      res.end('Internal server error');
+    });
+  });
+
+  server.listen(PORT, () => {
+    console.log(`\n🍅 Pomodoro Web App running at http://localhost:${PORT}\n`);
+  });
+}
+
+bootstrap();

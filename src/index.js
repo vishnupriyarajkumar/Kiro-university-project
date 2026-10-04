@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import path from 'path';
 import { loadSessions, saveSessions, writeMarkdownFile } from './storage.js';
-import { validateSession, createSession, filterByDate, filterByWeek } from './sessions.js';
+import { validateSession, createSession, filterByDate, filterByWeek, deleteSession, editSession, searchSessions } from './sessions.js';
 import {
   totalMinutes,
   averageDuration,
@@ -137,6 +137,159 @@ program
       console.log(chalk.white('  Current streak:      ') + chalk.magenta.bold(`${currentStreak(sessions, today)} day(s) 🔥`));
       console.log(chalk.white('  Longest streak:      ') + chalk.magenta.bold(`${longestStreak(sessions)} day(s)`));
       console.log(chalk.white('  Most productive day: ') + chalk.cyan.bold(mostProductiveDay(sessions)));
+    } catch (err) {
+      console.error(chalk.red.bold('Error: ') + err.message);
+      process.exit(1);
+    }
+  });
+
+// ── delete command ───────────────────────────────────────────────────────────
+program
+  .command('delete <id>')
+  .description('Delete a session by its ID')
+  .action((id) => {
+    try {
+      const sessions = loadSessions();
+      const { found, sessions: updated } = deleteSession(sessions, id);
+      if (!found) {
+        console.error(chalk.red.bold('Error: ') + `No session found with ID: ${id}`);
+        process.exit(1);
+      }
+      saveSessions(updated);
+      console.log(chalk.green.bold('\n🗑️  Session deleted.'));
+      console.log(chalk.gray(`   ID: ${id}`));
+    } catch (err) {
+      console.error(chalk.red.bold('Error: ') + err.message);
+      process.exit(1);
+    }
+  });
+
+// ── edit command ─────────────────────────────────────────────────────────────
+program
+  .command('edit <id>')
+  .description('Edit a session description or duration by its ID')
+  .option('-d, --description <text>', 'New description')
+  .option('-m, --duration <minutes>', 'New duration in minutes')
+  .action((id, options) => {
+    if (!options.description && !options.duration) {
+      console.error(chalk.red.bold('Error: ') + 'Provide at least --description or --duration to update.');
+      process.exit(1);
+    }
+
+    const updates = {};
+    if (options.description) updates.description = options.description;
+    if (options.duration) updates.duration = parseInt(options.duration, 10);
+
+    try {
+      const sessions = loadSessions();
+      const result = editSession(sessions, id, updates);
+
+      if (!result.found) {
+        console.error(chalk.red.bold('Error: ') + `No session found with ID: ${id}`);
+        process.exit(1);
+      }
+      if (!result.valid) {
+        result.errors.forEach((e) => console.error(chalk.red.bold('Error: ') + e));
+        process.exit(1);
+      }
+
+      saveSessions(result.sessions);
+      console.log(chalk.green.bold('\n✏️  Session updated!'));
+      console.log(chalk.white(`   ${result.session.description}`) + chalk.cyan.bold(` [${result.session.duration} min]`));
+    } catch (err) {
+      console.error(chalk.red.bold('Error: ') + err.message);
+      process.exit(1);
+    }
+  });
+
+// ── search command ───────────────────────────────────────────────────────────
+program
+  .command('search <keyword>')
+  .description('Search sessions by keyword in description')
+  .action((keyword) => {
+    try {
+      const sessions = loadSessions();
+      const results = searchSessions(sessions, keyword);
+
+      console.log(chalk.yellow.bold(`\n🔍 Search results for "${keyword}"`));
+
+      if (results.length === 0) {
+        console.log(chalk.gray('  No sessions matched.'));
+        return;
+      }
+
+      results.forEach((s) => {
+        console.log(
+          chalk.white(`  · ${s.description}`) +
+          chalk.cyan.bold(` [${s.duration} min]`) +
+          chalk.gray(` — ${s.date}`)
+        );
+      });
+      console.log(chalk.green.bold(`\n  ${results.length} session(s) found · ${totalMinutes(results)} min total`));
+    } catch (err) {
+      console.error(chalk.red.bold('Error: ') + err.message);
+      process.exit(1);
+    }
+  });
+
+// ── streak command ───────────────────────────────────────────────────────────
+program
+  .command('streak')
+  .description('Show streak details with a visual 4-week calendar')
+  .action(() => {
+    try {
+      const sessions = loadSessions();
+      const today = new Date().toISOString().slice(0, 10);
+      const current = currentStreak(sessions, today);
+      const longest = longestStreak(sessions);
+      const activeDays = new Set(sessions.map((s) => s.date));
+
+      console.log(chalk.yellow.bold('\n🔥 Streak Overview\n'));
+      console.log(chalk.white('  Current streak: ') + chalk.magenta.bold(`${current} day(s)`));
+      console.log(chalk.white('  Longest streak: ') + chalk.magenta.bold(`${longest} day(s)`));
+
+      // Build a 4-week (28-day) visual calendar
+      console.log(chalk.yellow.bold('\n  Last 28 days  (● = session logged, ○ = no session)\n'));
+      console.log(chalk.gray('  Mon  Tue  Wed  Thu  Fri  Sat  Sun'));
+
+      // Find Monday 27 days ago
+      const todayDate = new Date(today + 'T00:00:00.000Z');
+      const dayOfWeek = todayDate.getUTCDay();
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const startDate = new Date(todayDate);
+      startDate.setUTCDate(todayDate.getUTCDate() + diffToMonday - 21); // 3 weeks before current Monday
+
+      let row = '  ';
+      for (let i = 0; i < 28; i++) {
+        const d = new Date(startDate);
+        d.setUTCDate(startDate.getUTCDate() + i);
+        const dateStr = d.toISOString().slice(0, 10);
+        const isToday = dateStr === today;
+        const hasSession = activeDays.has(dateStr);
+
+        let cell;
+        if (isToday) {
+          cell = hasSession ? chalk.green.bold(' ● ') : chalk.red.bold(' ○ ');
+        } else if (hasSession) {
+          cell = chalk.green(' ● ');
+        } else {
+          cell = chalk.gray(' ○ ');
+        }
+
+        row += cell + ' ';
+
+        // New row every 7 days
+        if ((i + 1) % 7 === 0) {
+          console.log(row);
+          row = '  ';
+        }
+      }
+
+      if (current === 0) {
+        console.log(chalk.red('\n  ⚠️  No session today — log one to keep your streak alive!'));
+      } else {
+        console.log(chalk.green(`\n  ✅ Keep it up! You've been focused for ${current} day(s) in a row.`));
+      }
     } catch (err) {
       console.error(chalk.red.bold('Error: ') + err.message);
       process.exit(1);

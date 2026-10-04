@@ -1,4 +1,4 @@
-import { validateSession, createSession, filterByDate, filterByWeek } from '../../src/sessions.js';
+import { validateSession, createSession, filterByDate, filterByWeek, deleteSession, editSession, searchSessions } from '../../src/sessions.js';
 
 describe('validateSession', () => {
   test('accepts a valid description and duration', () => {
@@ -125,5 +125,124 @@ describe('filterByWeek', () => {
 
   test('returns empty array for empty sessions', () => {
     expect(filterByWeek([], '2026-10-07')).toHaveLength(0);
+  });
+});
+
+describe('deleteSession', () => {
+  const sessions = [
+    { id: 'aaa', date: '2026-10-01', duration: 25, description: 'Session A' },
+    { id: 'bbb', date: '2026-10-02', duration: 30, description: 'Session B' },
+    { id: 'ccc', date: '2026-10-03', duration: 20, description: 'Session C' },
+  ];
+
+  test('removes the session with the matching ID', () => {
+    const { found, sessions: updated } = deleteSession(sessions, 'bbb');
+    expect(found).toBe(true);
+    expect(updated).toHaveLength(2);
+    expect(updated.find((s) => s.id === 'bbb')).toBeUndefined();
+  });
+
+  test('returns found: false when ID does not exist', () => {
+    const { found, sessions: updated } = deleteSession(sessions, 'zzz');
+    expect(found).toBe(false);
+    expect(updated).toHaveLength(3);
+  });
+
+  test('does not mutate the original sessions array', () => {
+    const original = [...sessions];
+    deleteSession(sessions, 'aaa');
+    expect(sessions).toHaveLength(original.length);
+  });
+
+  test('returns empty array when deleting the only session', () => {
+    const single = [{ id: 'only', date: '2026-10-01', duration: 25, description: 'Solo' }];
+    const { found, sessions: updated } = deleteSession(single, 'only');
+    expect(found).toBe(true);
+    expect(updated).toHaveLength(0);
+  });
+});
+
+describe('editSession', () => {
+  const sessions = [
+    { id: 'aaa', date: '2026-10-01', duration: 25, description: 'Original description', startTime: '2026-10-01T09:00:00.000Z', completed: true },
+    { id: 'bbb', date: '2026-10-02', duration: 30, description: 'Another session', startTime: '2026-10-02T10:00:00.000Z', completed: true },
+  ];
+
+  test('updates the description when provided', () => {
+    const result = editSession(sessions, 'aaa', { description: 'Updated description' });
+    expect(result.found).toBe(true);
+    expect(result.valid).toBe(true);
+    expect(result.session.description).toBe('Updated description');
+    expect(result.session.duration).toBe(25);
+  });
+
+  test('updates the duration when provided', () => {
+    const result = editSession(sessions, 'aaa', { duration: 50 });
+    expect(result.found).toBe(true);
+    expect(result.valid).toBe(true);
+    expect(result.session.duration).toBe(50);
+    expect(result.session.description).toBe('Original description');
+  });
+
+  test('updates both description and duration when both provided', () => {
+    const result = editSession(sessions, 'aaa', { description: 'New desc', duration: 45 });
+    expect(result.session.description).toBe('New desc');
+    expect(result.session.duration).toBe(45);
+  });
+
+  test('returns found: false when ID does not exist', () => {
+    const result = editSession(sessions, 'zzz', { description: 'Nope' });
+    expect(result.found).toBe(false);
+  });
+
+  test('returns valid: false when new values fail validation', () => {
+    const result = editSession(sessions, 'aaa', { description: '   ', duration: 25 });
+    expect(result.found).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
+
+  test('returns valid: false when duration is out of range', () => {
+    const result = editSession(sessions, 'aaa', { duration: 200 });
+    expect(result.valid).toBe(false);
+  });
+
+  test('does not mutate the original sessions array', () => {
+    editSession(sessions, 'aaa', { description: 'Changed' });
+    expect(sessions[0].description).toBe('Original description');
+  });
+});
+
+describe('searchSessions', () => {
+  const sessions = [
+    { id: '1', date: '2026-10-01', duration: 25, description: 'Deep work on authentication' },
+    { id: '2', date: '2026-10-02', duration: 30, description: 'Refactor database layer' },
+    { id: '3', date: '2026-10-03', duration: 20, description: 'Write unit tests for auth module' },
+    { id: '4', date: '2026-10-04', duration: 45, description: 'Review pull requests' },
+  ];
+
+  test('returns sessions whose description contains the keyword', () => {
+    const result = searchSessions(sessions, 'auth');
+    expect(result).toHaveLength(2);
+    expect(result.map((s) => s.id)).toEqual(expect.arrayContaining(['1', '3']));
+  });
+
+  test('is case-insensitive', () => {
+    const result = searchSessions(sessions, 'AUTH');
+    expect(result).toHaveLength(2);
+  });
+
+  test('returns empty array when no sessions match', () => {
+    expect(searchSessions(sessions, 'nonexistent')).toHaveLength(0);
+  });
+
+  test('returns all sessions when keyword matches all descriptions', () => {
+    // All descriptions contain a space
+    const result = searchSessions(sessions, ' ');
+    expect(result).toHaveLength(4);
+  });
+
+  test('returns empty array for empty sessions input', () => {
+    expect(searchSessions([], 'auth')).toHaveLength(0);
   });
 });

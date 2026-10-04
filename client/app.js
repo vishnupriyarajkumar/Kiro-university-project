@@ -178,6 +178,8 @@ function onTimerComplete() {
   if (isWorkMode) {
     const cycleComplete = advanceDot();
     if (cycleComplete) launchConfetti();
+    // Show quick-log prompt if on timer page
+    showQuickLogPrompt();
     switchMode(false);
     showBrowserNotification('Work session done!', 'Time for a short break. 🌿');
   } else {
@@ -682,6 +684,59 @@ function esc(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// ── Quick-log prompt (timer.html only) ───────────────────────────────────────
+
+/** Show the quick-log card after a work session completes. */
+function showQuickLogPrompt() {
+  const area = document.getElementById('quick-log-area');
+  if (!area) return;
+  area.style.display = 'block';
+  const input = document.getElementById('ql-description');
+  if (input) input.focus();
+}
+
+/** Hide the quick-log card. */
+function hideQuickLogPrompt() {
+  const area = document.getElementById('quick-log-area');
+  if (area) area.style.display = 'none';
+}
+
+// Wire quick-log save/skip if elements exist on this page
+const qlSaveBtn = document.getElementById('ql-save-btn');
+const qlSkipBtn = document.getElementById('ql-skip-btn');
+
+if (qlSaveBtn) {
+  qlSaveBtn.addEventListener('click', async () => {
+    const descEl = document.getElementById('ql-description');
+    const msgEl  = document.getElementById('ql-message');
+    const desc   = descEl ? descEl.value.trim() : '';
+    if (!desc) {
+      msgEl.textContent = 'Please enter a description.';
+      msgEl.className   = 'message error';
+      return;
+    }
+    try {
+      const res  = await fetch('/api/sessions', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ description: desc, duration: WORK_DURATION_MINS }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      msgEl.textContent = `✅ Saved: "${data.session.description}"`;
+      msgEl.className   = 'message success';
+      setTimeout(hideQuickLogPrompt, 2000);
+    } catch (err) {
+      msgEl.textContent = err.message;
+      msgEl.className   = 'message error';
+    }
+  });
+}
+
+if (qlSkipBtn) {
+  qlSkipBtn.addEventListener('click', hideQuickLogPrompt);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
