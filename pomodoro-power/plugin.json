@@ -1,0 +1,19 @@
+{
+  "name": "pomodoro-logger",
+  "version": "1.0.0",
+  "description": "Helps you log, track, and analyze Pomodoro focus sessions from the CLI. Includes skills for logging sessions, generating weekly reports, and reviewing streaks.",
+  "author": {
+    "name": "Vishnu Priya Rajkumar"
+  },
+  "keywords": [
+    "pomodoro",
+    "focus",
+    "session",
+    "timer",
+    "productivity",
+    "streak",
+    "log",
+    "weekly report",
+    "stats"
+  ]
+}
