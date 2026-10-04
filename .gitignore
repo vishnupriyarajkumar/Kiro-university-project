@@ -4,3 +4,13 @@ data/sessions.json
 *.log
 .DS_Store
 coverage/
+
+# Test output artefacts
+jest-*.json
+test-*.txt
+jest-output.txt
+
+# Stray files created during development
+console.log(`
+s
+{
