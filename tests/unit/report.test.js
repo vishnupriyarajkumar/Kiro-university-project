@@ -46,6 +46,21 @@ describe('getSundayDate', () => {
     // 2026-10-11 is a Sunday
     expect(getSundayDate('2026-10-11')).toBe('2026-10-11');
   });
+
+  test('getMondayDate and getSundayDate are always 6 days apart', () => {
+    const dates = ['2026-10-05', '2026-10-07', '2026-10-10', '2026-10-11', '2026-09-30'];
+    for (const date of dates) {
+      const mon = new Date(getMondayDate(date) + 'T00:00:00.000Z');
+      const sun = new Date(getSundayDate(date) + 'T00:00:00.000Z');
+      const diffDays = (sun - mon) / (1000 * 60 * 60 * 24);
+      expect(diffDays).toBe(6);
+    }
+  });
+
+  test('getSundayDate applied to a Monday always crosses a month boundary correctly', () => {
+    // 2026-09-28 is a Monday; Sunday should be 2026-10-04
+    expect(getSundayDate('2026-09-28')).toBe('2026-10-04');
+  });
 });
 
 // ─── Task 5.2: empty and single-session cases ────────────────────────────────
