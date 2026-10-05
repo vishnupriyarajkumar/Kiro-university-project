@@ -262,10 +262,6 @@ async function handleRequest(req, res) {
         json(res, 400, { error: 'Provide at least description or duration to update.' });
         return;
       }
-      const { valid, errors } = validateSession(
-        updates.description ?? 'placeholder',
-        updates.duration    ?? 25
-      );
       // Only validate the fields that were actually provided
       const fieldErrors = [];
       if (updates.description !== undefined && updates.description.length === 0) {

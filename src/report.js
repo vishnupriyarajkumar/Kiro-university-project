@@ -1,6 +1,6 @@
 /** Pure formatting module for generating weekly Markdown reports. No file I/O or side effects. */
 
-import { totalMinutes, averageDuration, groupByDay } from './stats.js';
+import { totalMinutes, groupByDay } from './stats.js';
 
 /**
  * Returns the YYYY-MM-DD date string of the Monday of the ISO week

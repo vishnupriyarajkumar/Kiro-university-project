@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import path from 'path';
 import { writeFileSync } from 'fs';
-import { loadSessions, saveSessions, saveSession, deleteSessionById, updateSessionById } from './storage.js';
+import { loadSessions, saveSession, deleteSessionById, updateSessionById } from './storage.js';
 import { connectDB, disconnectDB } from './db.js';
 import { validateSession, createSession, filterByDate, filterByWeek, searchSessions } from './sessions.js';
 import {
@@ -54,7 +54,7 @@ program
 // ── today command ────────────────────────────────────────────────────────────
 program
   .command('today')
-  .description("Show today's focus sessions")
+  .description('Show today\'s focus sessions')
   .action(async () => {
     try {
       const sessions = await loadSessions();
@@ -85,7 +85,7 @@ program
 // ── week command ─────────────────────────────────────────────────────────────
 program
   .command('week')
-  .description("Show this week's focus sessions grouped by day")
+  .description('Show this week\'s focus sessions grouped by day')
   .action(async () => {
     try {
       const sessions = await loadSessions();
@@ -338,7 +338,7 @@ async function exportAction(options) {
 
 program
   .command('export')
-  .description("Export this week's focus sessions as a Markdown report")
+  .description('Export this week\'s focus sessions as a Markdown report')
   .option('-o, --output <path>', 'Output file path')
   .action(exportAction);
 
