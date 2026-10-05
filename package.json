@@ -6,8 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
+    "cli": "node src/index.js",
+    "seed": "node src/seed.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:property": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/property",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
     "lint": "eslint src/ tests/ --ext .js",
     "web": "node src/server.js"
   },
