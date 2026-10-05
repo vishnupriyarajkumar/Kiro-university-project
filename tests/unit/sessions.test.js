@@ -246,3 +246,71 @@ describe('searchSessions', () => {
     expect(searchSessions([], 'auth')).toHaveLength(0);
   });
 });
+
+// ── Edge cases added for task 7 ───────────────────────────────────────────────
+
+describe('validateSession — edge cases', () => {
+  test('rejects null description', () => {
+    expect(validateSession(null, 25).valid).toBe(false);
+  });
+
+  test('rejects undefined description', () => {
+    expect(validateSession(undefined, 25).valid).toBe(false);
+  });
+
+  test('rejects a number passed as description', () => {
+    expect(validateSession(42, 25).valid).toBe(false);
+  });
+
+  test('rejects duration of exactly 0 (below minimum)', () => {
+    expect(validateSession('Valid', 0).valid).toBe(false);
+  });
+
+  test('rejects duration of exactly 121 (above maximum)', () => {
+    expect(validateSession('Valid', 121).valid).toBe(false);
+  });
+
+  test('rejects a float duration like 25.5', () => {
+    expect(validateSession('Valid', 25.5).valid).toBe(false);
+  });
+
+  test('rejects NaN duration', () => {
+    expect(validateSession('Valid', NaN).valid).toBe(false);
+  });
+
+  test('rejects a string duration like "25"', () => {
+    // String "25" is not an integer — Number.isInteger("25") is false
+    expect(validateSession('Valid', '25').valid).toBe(false);
+  });
+
+  test('description with only newlines is rejected', () => {
+    expect(validateSession('\n\n\n', 25).valid).toBe(false);
+  });
+
+  test('description with only tabs is rejected', () => {
+    expect(validateSession('\t\t', 25).valid).toBe(false);
+  });
+});
+
+describe('createSession — edge cases', () => {
+  test('description with leading/trailing whitespace is trimmed', () => {
+    const s = createSession('  Focus time  ', 25);
+    expect(s.description).toBe('Focus time');
+  });
+
+  test('duration is stored as a number even when passed as a numeric value', () => {
+    const s = createSession('Task', 30);
+    expect(typeof s.duration).toBe('number');
+  });
+
+  test('each call produces a unique id', () => {
+    const a = createSession('Task A', 25);
+    const b = createSession('Task B', 25);
+    expect(a.id).not.toBe(b.id);
+  });
+
+  test('completed is always true', () => {
+    const s = createSession('Task', 25);
+    expect(s.completed).toBe(true);
+  });
+});
