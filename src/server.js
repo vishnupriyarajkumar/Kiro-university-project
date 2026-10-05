@@ -144,6 +144,21 @@ async function handleRequest(req, res) {
     return;
   }
 
+  // GET /api/sessions/:id — fetch a single session by UUID
+  if (/^\/api\/sessions\/[^/]+$/.test(pathname) && method === 'GET') {
+    const id = pathname.replace('/api/sessions/', '').trim();
+    try {
+      const sessions = await loadSessions();
+      const session  = sessions.find((s) => s.id === id);
+      if (!session) {
+        json(res, 404, { error: `No session found with ID: ${id}` });
+        return;
+      }
+      json(res, 200, { session });
+    } catch (err) { json(res, 500, { error: err.message }); }
+    return;
+  }
+
   // GET /api/heatmap
   if (pathname === '/api/heatmap' && method === 'GET') {
     try {
