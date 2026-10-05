@@ -15,10 +15,25 @@ function esc(str) {
 
 /** Fetch JSON and throw a descriptive error on non-OK responses. */
 async function fetchJSON(path) {
-  const res  = await fetch(API + path);
+  let res;
+  try {
+    res = await fetch(API + path);
+  } catch {
+    throw new Error('Could not reach the server. Is it running on port 3000?');
+  }
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
+  if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
   return data;
+}
+
+/** Render a full-section error message into a container element. */
+function renderError(el, message) {
+  el.innerHTML = `
+    <div class="empty-card" role="alert" aria-live="polite">
+      <span style="font-size:1.4rem">⚠️</span>
+      <strong>Something went wrong</strong><br>
+      ${esc(message)}
+    </div>`;
 }
 
 /**
@@ -34,7 +49,7 @@ function animateCount(el, target) {
     const eased    = 1 - Math.pow(1 - progress, 3);
     el.textContent = Math.round(target * eased);
     if (progress < 1) requestAnimationFrame(step);
-    else el.textContent = target; // snap to exact value
+    else el.textContent = target;
   }
   requestAnimationFrame(step);
 }
@@ -56,17 +71,18 @@ async function loadStats() {
     }
 
     const cards = [
-      { iconName: 'tomato',   id: 'sv-sessions', value: d.totalSessions,   label: 'Total Sessions' },
-      { iconName: 'stopwatch',id: 'sv-minutes',  value: d.totalMinutes,    label: 'Total Minutes'  },
-      { iconName: 'clock',    id: 'sv-avg',      value: d.averageDuration, label: 'Avg Duration'   },
-      { iconName: 'fire',     id: 'sv-streak',   value: d.currentStreak,   label: 'Current Streak' },
-      { iconName: 'trophy',   id: 'sv-longest',  value: d.longestStreak,   label: 'Longest Streak' },
-      { iconName: 'star',     id: 'sv-best',     value: null,              label: 'Best Day', text: esc(d.mostProductiveDay) },
+      { iconName: 'tomato',    id: 'sv-sessions', value: d.totalSessions,   label: 'Total Sessions' },
+      { iconName: 'stopwatch', id: 'sv-minutes',  value: d.totalMinutes,    label: 'Total Minutes'  },
+      { iconName: 'clock',     id: 'sv-avg',      value: d.averageDuration, label: 'Avg Duration'   },
+      { iconName: 'fire',      id: 'sv-streak',   value: d.currentStreak,   label: 'Current Streak' },
+      { iconName: 'trophy',    id: 'sv-longest',  value: d.longestStreak,   label: 'Longest Streak' },
+      { iconName: 'star',      id: 'sv-best-day', value: null, label: 'Best Day',  text: esc(d.mostProductiveDay)  },
+      { iconName: 'bulb',      id: 'sv-best-hr',  value: null, label: 'Best Hour', text: esc(d.mostProductiveHour || 'N/A') },
     ];
 
     el.innerHTML = `
       <div class="stats-grid">
-        ${cards.map(c => `
+        ${cards.map((c) => `
           <div class="stat-card">
             <div class="stat-icon">${icon(c.iconName, 40)}</div>
             <div class="stat-value" id="${c.id}"
@@ -77,18 +93,15 @@ async function loadStats() {
           </div>`).join('')}
       </div>`;
 
-    // Animate numeric cards after the DOM is painted
     requestAnimationFrame(() => {
-      cards.forEach(c => {
-        if (c.value !== null) {
-          animateCount(document.getElementById(c.id), c.value);
-        }
+      cards.forEach((c) => {
+        if (c.value !== null) animateCount(document.getElementById(c.id), c.value);
       });
     });
 
     loadInsights(d);
   } catch (err) {
-    el.innerHTML = `<div class="empty-card">Error: ${esc(err.message)}</div>`;
+    renderError(el, err.message);
   }
 }
 
@@ -99,14 +112,11 @@ async function loadWeeklyChart() {
   el.innerHTML = '<p class="loading">Loading…</p>';
   try {
     const data = await fetchJSON('/api/stats/weekly');
-    const days  = data.days; // [{ label, minutes, isToday }]
-    const max   = Math.max(...days.map(d => d.minutes), 1);
+    const days  = data.days;
+    const max   = Math.max(...days.map((d) => d.minutes), 1);
 
-    // Store target heights as data attributes; bars start at height 0
-    const bars = days.map(d => {
-      const heightPct  = d.minutes > 0
-        ? Math.max(Math.round((d.minutes / max) * 100), 4)
-        : 0;
+    const bars = days.map((d) => {
+      const heightPct  = d.minutes > 0 ? Math.max(Math.round((d.minutes / max) * 100), 4) : 0;
       const todayClass = d.isToday ? ' bar-today' : '';
       return `
         <div class="bar-col">
@@ -126,15 +136,13 @@ async function loadWeeklyChart() {
         <div class="bar-chart">${bars}</div>
       </div>`;
 
-    // Force a layout flush so height:0 is painted, then animate to target
-    el.querySelectorAll('.bar').forEach(bar => {
-      // Reading offsetHeight forces the browser to apply the height:0 style
+    el.querySelectorAll('.bar').forEach((bar) => {
       void bar.offsetHeight;
       bar.style.transition = 'height 0.7s cubic-bezier(0.22,1,0.36,1)';
       bar.style.height     = bar.dataset.target + '%';
     });
   } catch (err) {
-    el.innerHTML = `<div class="empty-card">Chart unavailable: ${esc(err.message)}</div>`;
+    renderError(el, err.message);
   }
 }
 
@@ -143,6 +151,7 @@ async function loadWeeklyChart() {
 /** Render contextual insight cards below the chart. */
 function loadInsights(d) {
   const el = document.getElementById('insights-content');
+  if (!el) return;
 
   const streakMsg = d.currentStreak >= 7
     ? `You're on a ${d.currentStreak}-day streak — incredible focus! 🎉`
@@ -156,30 +165,55 @@ function loadInsights(d) {
     ? `Great depth — your average session is ${d.averageDuration} min.`
     : `Your average is ${d.averageDuration} min. Try aiming for 25 min for deeper focus.`;
 
-  const streakIcon = d.currentStreak >= 7 ? icon('rocket', 36) : d.currentStreak >= 3 ? icon('fire', 36) : icon('bulb', 36);
+  const bestHour = d.mostProductiveHour || 'N/A';
+  const streakIcon = d.currentStreak >= 7
+    ? icon('rocket', 36)
+    : d.currentStreak >= 3
+      ? icon('fire', 36)
+      : icon('bulb', 36);
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="insight-card">
         <h4>Streak</h4>
-        <div class="insight-value" style="display:flex;align-items:center;gap:10px">${streakIcon} ${d.currentStreak} day${d.currentStreak !== 1 ? 's' : ''}</div>
+        <div class="insight-value" style="display:flex;align-items:center;gap:10px">
+          ${streakIcon} ${d.currentStreak} day${d.currentStreak !== 1 ? 's' : ''}
+        </div>
         <div class="insight-sub">${streakMsg}</div>
       </div>
       <div class="insight-card">
         <h4>Avg Session</h4>
-        <div class="insight-value" style="display:flex;align-items:center;gap:10px">${icon('clock', 36)} ${d.averageDuration} min</div>
+        <div class="insight-value" style="display:flex;align-items:center;gap:10px">
+          ${icon('clock', 36)} ${d.averageDuration} min
+        </div>
         <div class="insight-sub">${avgMsg}</div>
       </div>
-      <div class="insight-card" style="grid-column:1/-1">
+      <div class="insight-card">
         <h4>Most Productive Day</h4>
-        <div class="insight-value" style="display:flex;align-items:center;gap:10px">${icon('star', 36)} ${esc(d.mostProductiveDay)}</div>
+        <div class="insight-value" style="display:flex;align-items:center;gap:10px">
+          ${icon('star', 36)} ${esc(d.mostProductiveDay)}
+        </div>
         <div class="insight-sub">
-          Plan your deepest work sessions on ${esc(d.mostProductiveDay)}s for best results.
+          Plan your deepest work on ${esc(d.mostProductiveDay)}s for best results.
+        </div>
+      </div>
+      <div class="insight-card">
+        <h4>Most Productive Hour</h4>
+        <div class="insight-value" style="display:flex;align-items:center;gap:10px">
+          ${icon('bulb', 36)} ${esc(bestHour)}
+        </div>
+        <div class="insight-sub">
+          Schedule focus blocks around ${esc(bestHour)} when your energy peaks.
         </div>
       </div>
     </div>`;
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
-loadStats();
-loadWeeklyChart();
+
+/** Top-level entry point — run both loaders in parallel. */
+async function initPage() {
+  await Promise.allSettled([loadStats(), loadWeeklyChart()]);
+}
+
+initPage();
