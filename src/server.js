@@ -287,6 +287,30 @@ async function handleRequest(req, res) {
   if (pathname === '/') { serveStatic(res, path.join(CLIENT_DIR, 'index.html')); return; }
   const staticPath = path.join(CLIENT_DIR, pathname);
   if (!staticPath.startsWith(CLIENT_DIR)) { res.writeHead(403); res.end('Forbidden'); return; }
+
+  // For known API paths hit with an unsupported method, return 405 instead of 404
+  const knownApiPaths = [
+    '/api/sessions/today',
+    '/api/sessions/week',
+    '/api/sessions/search',
+    '/api/sessions',
+    '/api/heatmap',
+    '/api/stats',
+    '/api/stats/weekly',
+    '/api/report',
+  ];
+  const isKnownApi = knownApiPaths.includes(pathname) || pathname.startsWith('/api/sessions/');
+  if (isKnownApi) {
+    json(res, 405, { error: `Method ${method} not allowed on ${pathname}` });
+    return;
+  }
+
+  // Unknown API routes return structured JSON 404
+  if (pathname.startsWith('/api/')) {
+    json(res, 404, { error: `Unknown API endpoint: ${pathname}` });
+    return;
+  }
+
   serveStatic(res, staticPath);
 }
 
