@@ -686,7 +686,78 @@ function esc(str) {
     .replace(/"/g, '&quot;');
 }
 
-// ── Quick-log prompt (timer.html only) ───────────────────────────────────────
+// ── ⑥ VOICE COMMANDS (timer page) ────────────────────────────────────────────
+
+(function setupTimerVoice() {
+  // Only wire voice if the voice control button exists on this page
+  const voiceTimerBtn    = document.getElementById('voice-timer-btn');
+  const voiceTimerStatus = document.getElementById('voice-timer-status');
+  if (!voiceTimerBtn) return;
+
+  // Dynamically import voice module (ES module — timer.html loads app.js as plain script,
+  // so we use a dynamic import to get the ES module functions)
+  import('./voice.js').then(({ isSpeechSupported, createRecognition, parseTimerCommand }) => {
+    if (!isSpeechSupported()) {
+      voiceTimerBtn.style.display = 'none';
+      return;
+    }
+
+    let listening   = false;
+    let recognition = null;
+
+    function setStatus(msg) {
+      if (voiceTimerStatus) {
+        voiceTimerStatus.textContent  = msg;
+        voiceTimerStatus.style.display = msg ? 'block' : 'none';
+      }
+    }
+
+    function handleVoiceCommand(transcript) {
+      const action = parseTimerCommand(transcript);
+      setStatus(`🎙️ "${transcript}" → ${action || 'no command matched'}`);
+      setTimeout(() => setStatus(''), 3000);
+
+      if (!action) return;
+      if (action === 'start')     { if (!isRunning) toggleTimer(); }
+      else if (action === 'pause')     { if (isRunning)  toggleTimer(); }
+      else if (action === 'reset')     { resetTimer(); }
+      else if (action === 'work-mode') { if (!isWorkMode) switchMode(true); }
+      else if (action === 'rest-mode') { if (isWorkMode)  switchMode(false); }
+    }
+
+    voiceTimerBtn.addEventListener('click', () => {
+      if (listening) {
+        recognition.stop();
+        return;
+      }
+      recognition = createRecognition({
+        continuous: true,
+        onStart() {
+          listening = true;
+          voiceTimerBtn.classList.add('mic-listening');
+          voiceTimerBtn.setAttribute('aria-label', 'Stop voice control');
+          setStatus('🎙️ Listening for commands…');
+        },
+        onResult(transcript) { handleVoiceCommand(transcript); },
+        onEnd() {
+          listening = false;
+          voiceTimerBtn.classList.remove('mic-listening');
+          voiceTimerBtn.setAttribute('aria-label', 'Start voice control');
+          setStatus('');
+        },
+        onError(msg) {
+          listening = false;
+          voiceTimerBtn.classList.remove('mic-listening');
+          setStatus(`❌ ${msg}`);
+          setTimeout(() => setStatus(''), 4000);
+        },
+      });
+      recognition.start();
+    });
+  }).catch(() => {
+    // voice.js not available — fail silently
+  });
+})();
 
 /** Show the quick-log card after a work session completes. */
 function showQuickLogPrompt() {

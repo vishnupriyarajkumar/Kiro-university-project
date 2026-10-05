@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pomodoro — Focus Timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -27,19 +30,34 @@
     <!-- Timer card -->
     <div class="timer-card" id="timer-card">
 
+      <!-- SVG gradient definition -->
+      <svg width="0" height="0" style="position:absolute">
+        <defs>
+          <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#7dc07d" />
+            <stop offset="100%" stop-color="#2d6f2d" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <!-- Ring -->
       <div class="timer-ring-wrapper">
         <svg class="timer-svg" viewBox="0 0 200 200" aria-hidden="true">
           <circle class="ring-track"    cx="100" cy="100" r="90" />
-          <circle class="ring-progress" cx="100" cy="100" r="90" id="ring-progress" />
-          <circle class="ring-dot"      cx="100" cy="10"  r="5"  id="ring-dot" />
+          <circle class="ring-progress" cx="100" cy="100" r="90"
+                  id="ring-progress"
+                  stroke="url(#ring-gradient)"
+                  stroke-dasharray="565.49"
+                  stroke-dashoffset="0" />
+          <circle class="ring-dot" cx="100" cy="10" r="6" id="ring-dot" />
         </svg>
         <div class="timer-center">
           <div class="timer-display" id="timer-display">25:00</div>
+          <div class="mode-label"    id="mode-label">Work Mode</div>
         </div>
       </div>
 
-      <div class="mode-label" id="mode-label">Work Mode</div>
-      <div class="mode-icon"  id="mode-icon">💻</div>
+      <div class="mode-icon" id="mode-icon">💻</div>
 
       <button class="control-btn" id="control-btn" aria-label="Start timer">&#9654;</button>
       <div class="control-label"  id="control-label">Start</div>
@@ -50,34 +68,43 @@
         <span class="kbd">W</span>/<span class="kbd">B</span> mode
       </div>
 
+      <!-- Voice control -->
+      <div class="voice-control-row">
+        <button type="button" class="mic-btn mic-btn-lg" id="voice-timer-btn"
+          aria-label="Start voice control"
+          title='Say "start", "pause", "reset", "work" or "break"'>🎙️ Voice Control</button>
+        <div id="voice-timer-status" class="voice-status" style="display:none"></div>
+      </div>
+
     </div>
 
     <!-- Mode toggle -->
     <div class="mode-toggle-strip">
-      <button class="mode-toggle-btn work-btn active" id="work-mode-btn">Work Mode</button>
-      <button class="mode-toggle-btn rest-btn"        id="rest-mode-btn">Rest Mode</button>
+      <button class="mode-toggle-btn active" id="work-mode-btn">💻 Work Mode</button>
+      <button class="mode-toggle-btn"        id="rest-mode-btn">🌿 Rest Mode</button>
     </div>
 
     <!-- Quick-log completed session -->
-    <div style="margin-top:20px">
-      <div id="quick-log-area" style="display:none">
-        <div class="log-card">
-          <h3>💾 Save this session?</h3>
-          <div class="field">
-            <label for="ql-description">What did you work on?</label>
-            <input id="ql-description" type="text" placeholder="e.g. Deep work on feature X" />
-          </div>
-          <button class="btn-primary" id="ql-save-btn">Save Session</button>
-          <button class="btn-secondary" id="ql-skip-btn" style="margin-top:8px;width:100%">Skip</button>
-          <div id="ql-message" class="message hidden"></div>
+    <div id="quick-log-area" style="display:none">
+      <div class="quick-log-card">
+        <h3>💾 Save this session?</h3>
+        <div class="field">
+          <label for="ql-description">What did you work on?</label>
+          <input id="ql-description" type="text" placeholder="e.g. Deep work on feature X" />
         </div>
+        <button class="btn-primary" id="ql-save-btn">🍅 Save Session</button>
+        <button class="btn-secondary" id="ql-skip-btn"
+          style="width:100%;margin-top:8px;display:block">Skip</button>
+        <div id="ql-message" class="message hidden"></div>
       </div>
     </div>
 
   </div>
 
   <!-- Confetti canvas -->
-  <canvas id="confetti-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:999"></canvas>
+  <canvas id="confetti-canvas"
+    style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:999">
+  </canvas>
 
   <script type="module">
     import { mountNav } from './nav.js';

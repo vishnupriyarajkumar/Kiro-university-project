@@ -5,12 +5,14 @@ const API = '';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+/** Escape HTML to prevent XSS. */
 function esc(str) {
   return String(str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/** Fetch JSON and throw a descriptive error on non-OK responses. */
 async function fetchJSON(path) {
   const res  = await fetch(API + path);
   const data = await res.json();
@@ -18,50 +20,73 @@ async function fetchJSON(path) {
   return data;
 }
 
-// ── KPI cards ─────────────────────────────────────────────────────────────────
+/**
+ * Animate a numeric text element from 0 to its target value.
+ * Uses ease-out cubic for a satisfying pop-in feel.
+ */
+function animateCount(el, target) {
+  const duration = 700;
+  const startTs  = performance.now();
+
+  function step(ts) {
+    const progress = Math.min((ts - startTs) / duration, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(target * eased);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target; // snap to exact value
+  }
+  requestAnimationFrame(step);
+}
+
+// ── KPI stat cards ─────────────────────────────────────────────────────────────
 
 async function loadStats() {
   const el = document.getElementById('stats-grid-content');
   el.innerHTML = '<p class="loading">Loading…</p>';
   try {
     const d = await fetchJSON('/api/stats');
+
     if (d.totalSessions === 0) {
-      el.innerHTML = '<div class="empty-card">No sessions yet — <a href="/log.html" style="color:var(--green-dark);font-weight:700">log your first one</a>.</div>';
+      el.innerHTML = `<div class="empty-card">
+        No sessions yet —
+        <a href="/log.html" style="color:var(--brand-500);font-weight:700">log your first one</a>.
+      </div>`;
       return;
     }
+
+    const cards = [
+      { icon: '🍅', id: 'sv-sessions', value: d.totalSessions,    label: 'Total Sessions'  },
+      { icon: '⏱️', id: 'sv-minutes',  value: d.totalMinutes,     label: 'Total Minutes'   },
+      { icon: '🕐', id: 'sv-avg',      value: d.averageDuration,  label: 'Avg Duration'    },
+      { icon: '🔥', id: 'sv-streak',   value: d.currentStreak,    label: 'Current Streak'  },
+      { icon: '🏆', id: 'sv-longest',  value: d.longestStreak,    label: 'Longest Streak'  },
+      {
+        icon: '⭐', id: 'sv-best', value: null,
+        label: 'Best Day', text: esc(d.mostProductiveDay),
+      },
+    ];
+
     el.innerHTML = `
       <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">🍅</div>
-          <div class="stat-value">${d.totalSessions}</div>
-          <div class="stat-label">Total Sessions</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏱️</div>
-          <div class="stat-value">${d.totalMinutes}</div>
-          <div class="stat-label">Total Minutes</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🕐</div>
-          <div class="stat-value">${d.averageDuration}</div>
-          <div class="stat-label">Avg Duration</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🔥</div>
-          <div class="stat-value">${d.currentStreak}</div>
-          <div class="stat-label">Current Streak</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🏆</div>
-          <div class="stat-value">${d.longestStreak}</div>
-          <div class="stat-label">Longest Streak</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⭐</div>
-          <div class="stat-value" style="font-size:1rem;padding-top:6px">${esc(d.mostProductiveDay)}</div>
-          <div class="stat-label">Best Day</div>
-        </div>
+        ${cards.map(c => `
+          <div class="stat-card">
+            <div class="stat-icon">${c.icon}</div>
+            <div class="stat-value" id="${c.id}"
+              style="${c.value === null ? 'font-size:1rem;padding-top:6px' : ''}">
+              ${c.value === null ? c.text : '0'}
+            </div>
+            <div class="stat-label">${c.label}</div>
+          </div>`).join('')}
       </div>`;
+
+    // Animate numeric cards after the DOM is painted
+    requestAnimationFrame(() => {
+      cards.forEach(c => {
+        if (c.value !== null) {
+          animateCount(document.getElementById(c.id), c.value);
+        }
+      });
+    });
 
     loadInsights(d);
   } catch (err) {
@@ -69,23 +94,30 @@ async function loadStats() {
   }
 }
 
-// ── Weekly bar chart ──────────────────────────────────────────────────────────
+// ── Weekly bar chart ───────────────────────────────────────────────────────────
 
 async function loadWeeklyChart() {
   const el = document.getElementById('chart-content');
   el.innerHTML = '<p class="loading">Loading…</p>';
   try {
     const data = await fetchJSON('/api/stats/weekly');
-    const days  = data.days; // [{ label:'Mon', minutes:50 }, ...]
+    const days  = data.days; // [{ label, minutes, isToday }]
     const max   = Math.max(...days.map(d => d.minutes), 1);
 
+    // Store target heights as data attributes; bars start at height 0
     const bars = days.map(d => {
-      const heightPct = Math.round((d.minutes / max) * 100);
-      const isToday   = d.isToday ? 'style="background:var(--green-dark)"' : '';
+      const heightPct  = d.minutes > 0
+        ? Math.max(Math.round((d.minutes / max) * 100), 4)
+        : 0;
+      const todayClass = d.isToday ? ' bar-today' : '';
       return `
         <div class="bar-col">
-          <div class="bar-val">${d.minutes > 0 ? d.minutes : ''}</div>
-          <div class="bar" style="height:${heightPct}%" ${isToday} title="${d.label}: ${d.minutes} min"></div>
+          <div class="bar-val" id="bv-${d.label}">${d.minutes > 0 ? d.minutes : ''}</div>
+          <div class="bar${todayClass}"
+            style="height:0%;transition:none"
+            data-target="${heightPct}"
+            title="${d.label}: ${d.minutes} min"
+            aria-label="${d.label}: ${d.minutes} minutes"></div>
           <div class="bar-label">${d.label}</div>
         </div>`;
     }).join('');
@@ -95,30 +127,43 @@ async function loadWeeklyChart() {
         <div class="chart-title">Focus minutes per day — this week</div>
         <div class="bar-chart">${bars}</div>
       </div>`;
+
+    // Force a layout flush so height:0 is painted, then animate to target
+    el.querySelectorAll('.bar').forEach(bar => {
+      // Reading offsetHeight forces the browser to apply the height:0 style
+      void bar.offsetHeight;
+      bar.style.transition = 'height 0.7s cubic-bezier(0.22,1,0.36,1)';
+      bar.style.height     = bar.dataset.target + '%';
+    });
   } catch (err) {
     el.innerHTML = `<div class="empty-card">Chart unavailable: ${esc(err.message)}</div>`;
   }
 }
 
-// ── Insight cards ─────────────────────────────────────────────────────────────
+// ── Insight cards ──────────────────────────────────────────────────────────────
 
+/** Render contextual insight cards below the chart. */
 function loadInsights(d) {
   const el = document.getElementById('insights-content');
 
-  const streakMsg = d.currentStreak >= 3
-    ? `You're on a ${d.currentStreak}-day streak — keep it going!`
-    : d.currentStreak === 0
-      ? 'Log a session today to start a new streak.'
-      : `${d.currentStreak} day streak — one more day to build momentum.`;
+  const streakMsg = d.currentStreak >= 7
+    ? `You're on a ${d.currentStreak}-day streak — incredible focus! 🎉`
+    : d.currentStreak >= 3
+      ? `You're on a ${d.currentStreak}-day streak — keep the momentum going!`
+      : d.currentStreak === 0
+        ? 'Log a session today to start a new streak.'
+        : `${d.currentStreak} day streak — one more to build momentum.`;
 
   const avgMsg = d.averageDuration >= 25
-    ? `Great focus depth — your average session is ${d.averageDuration} min.`
-    : `Your average session is ${d.averageDuration} min. Try pushing to 25 min for deeper focus.`;
+    ? `Great depth — your average session is ${d.averageDuration} min.`
+    : `Your average is ${d.averageDuration} min. Try aiming for 25 min for deeper focus.`;
+
+  const streakIcon = d.currentStreak >= 7 ? '🚀' : d.currentStreak >= 3 ? '🔥' : '💡';
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="insight-card">
-        <h4>🔥 Streak</h4>
+        <h4>${streakIcon} Streak</h4>
         <div class="insight-value">${d.currentStreak} day${d.currentStreak !== 1 ? 's' : ''}</div>
         <div class="insight-sub">${streakMsg}</div>
       </div>
@@ -130,11 +175,13 @@ function loadInsights(d) {
       <div class="insight-card" style="grid-column:1/-1">
         <h4>⭐ Most Productive Day</h4>
         <div class="insight-value">${esc(d.mostProductiveDay)}</div>
-        <div class="insight-sub">Plan your deepest work sessions on ${esc(d.mostProductiveDay)}s.</div>
+        <div class="insight-sub">
+          Plan your deepest work sessions on ${esc(d.mostProductiveDay)}s for best results.
+        </div>
       </div>
     </div>`;
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init ───────────────────────────────────────────────────────────────────────
 loadStats();
 loadWeeklyChart();

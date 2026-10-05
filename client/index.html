@@ -4,13 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pomodoro Logger — Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="page">
 
-    <!-- Hero -->
+    <!-- ── Hero ─────────────────────────────────────────────────────────── -->
     <div class="hero">
+      <div class="hero-badge">🍅 Pomodoro Logger</div>
       <span class="hero-emoji">🍅</span>
       <h1 class="hero-title">Stay in the Zone</h1>
       <p class="hero-sub">Log focus sessions, track streaks, and understand your productivity patterns — all in one place.</p>
@@ -20,7 +24,7 @@
       </div>
     </div>
 
-    <!-- Quick stats -->
+    <!-- ── Quick stats ───────────────────────────────────────────────────── -->
     <p class="section-title">Today at a glance</p>
     <div class="quick-stats">
       <div class="qs-card">
@@ -40,37 +44,42 @@
       </div>
     </div>
 
-    <!-- Feature cards -->
+    <!-- ── Feature cards ─────────────────────────────────────────────────── -->
     <p class="section-title">What you can do</p>
     <div class="feature-grid">
       <a href="/timer.html" class="feature-card">
-        <div class="feature-icon">⏰</div>
+        <span class="feature-icon">⏰</span>
         <div class="feature-title">Focus Timer</div>
         <div class="feature-desc">25-minute Pomodoro cycles with auto rest, chime alerts, confetti on cycle complete, and keyboard shortcuts.</div>
+        <span class="feature-arrow">→</span>
       </a>
       <a href="/log.html" class="feature-card">
-        <div class="feature-icon">📝</div>
+        <span class="feature-icon">📝</span>
         <div class="feature-title">Log Sessions</div>
         <div class="feature-desc">Manually log any focus session with a description and duration. View your most recent sessions instantly.</div>
+        <span class="feature-arrow">→</span>
       </a>
       <a href="/history.html" class="feature-card">
-        <div class="feature-icon">📅</div>
+        <span class="feature-icon">📅</span>
         <div class="feature-title">Session History</div>
         <div class="feature-desc">Browse today's sessions, navigate week by week, and see your 12-week focus heatmap.</div>
+        <span class="feature-arrow">→</span>
       </a>
       <a href="/stats.html" class="feature-card">
-        <div class="feature-icon">📊</div>
+        <span class="feature-icon">📊</span>
         <div class="feature-title">Analytics</div>
         <div class="feature-desc">Total sessions, streaks, average duration, most productive day, and a weekly bar chart.</div>
+        <span class="feature-arrow">→</span>
       </a>
       <a href="/report.html" class="feature-card">
-        <div class="feature-icon">📄</div>
+        <span class="feature-icon">📄</span>
         <div class="feature-title">Weekly Report</div>
         <div class="feature-desc">Generate a Markdown report of your week's sessions. Preview it here or download to your desktop.</div>
+        <span class="feature-arrow">→</span>
       </a>
     </div>
 
-    <!-- Recent sessions -->
+    <!-- ── Recent sessions ───────────────────────────────────────────────── -->
     <p class="section-title">Recent sessions</p>
     <div id="recent-sessions"><div class="empty-card">Loading…</div></div>
 
@@ -82,44 +91,80 @@
 
     const API = '';
 
+    /** Animate a number from 0 to target. */
+    function animateCount(el, target) {
+      const start    = 0;
+      const duration = 600;
+      const startTs  = performance.now();
+
+      function step(ts) {
+        const progress = Math.min((ts - startTs) / duration, 1);
+        const eased    = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        el.textContent = Math.round(start + (target - start) * eased);
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
     async function loadQuickStats() {
       try {
         const [todayData, statsData] = await Promise.all([
           fetch(API + '/api/sessions/today').then(r => r.json()),
           fetch(API + '/api/stats').then(r => r.json()),
         ]);
-        document.getElementById('qs-today').textContent  = todayData.sessions.length;
-        document.getElementById('qs-mins').textContent   = todayData.totalMinutes;
-        document.getElementById('qs-streak').textContent = statsData.currentStreak;
-      } catch (_) { /* leave as — */ }
+
+        const todayEl  = document.getElementById('qs-today');
+        const minsEl   = document.getElementById('qs-mins');
+        const streakEl = document.getElementById('qs-streak');
+
+        animateCount(todayEl,  todayData.sessions.length);
+        animateCount(minsEl,   todayData.totalMinutes);
+        animateCount(streakEl, statsData.currentStreak);
+      } catch (_) {
+        /* leave as — on error */
+      }
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     async function loadRecentSessions() {
       const el = document.getElementById('recent-sessions');
       try {
         const data = await fetch(API + '/api/sessions/today').then(r => r.json());
+
         if (data.sessions.length === 0) {
-          el.innerHTML = '<div class="empty-card">No sessions today yet — <a href="/timer.html" style="color:var(--green-dark);font-weight:700">start your first timer</a>.</div>';
+          el.innerHTML = `<div class="empty-card">
+            No sessions today yet —
+            <a href="/timer.html" style="color:var(--brand-500);font-weight:700">start your first timer</a>.
+          </div>`;
           return;
         }
+
         const items = [...data.sessions].reverse().slice(0, 5).map(s => `
           <div class="session-item">
             <div>
               <div class="session-desc">${esc(s.description)}</div>
-              <div class="session-meta">${s.date}</div>
+              <div class="session-meta">${s.date} · ${s.startTime.slice(11,16)} UTC</div>
             </div>
             <span class="session-dur">${s.duration} min</span>
           </div>`).join('');
-        el.innerHTML = `<div class="sessions-card"><h3>Today's sessions</h3>${items}
-          <div class="total-row"><span>Total</span><span>${data.totalMinutes} min</span></div>
-        </div>`;
-      } catch (err) {
+
+        el.innerHTML = `
+          <div class="sessions-card">
+            <h3>Today's sessions</h3>
+            ${items}
+            <div class="total-row">
+              <span>Total focus time</span>
+              <span>${data.totalMinutes} min · ${data.sessions.length} session(s)</span>
+            </div>
+          </div>`;
+      } catch (_) {
         el.innerHTML = `<div class="empty-card">Could not load sessions.</div>`;
       }
-    }
-
-    function esc(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     loadQuickStats();

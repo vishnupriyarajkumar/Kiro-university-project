@@ -4,17 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pomodoro — Weekly Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="page-narrow">
 
     <p class="section-title">📄 Weekly Report</p>
-    <p class="section-subtitle">Markdown summary of your current week. Download to keep a record.</p>
+    <p class="section-subtitle">Markdown summary of your current week. Switch between rendered preview and raw text.</p>
 
     <div class="report-actions">
       <button id="refresh-btn"  class="btn-secondary">🔄 Refresh</button>
       <button id="download-btn" class="btn-secondary">⬇️ Download .md</button>
+    </div>
+
+    <!-- View toggle: rendered vs raw -->
+    <div class="report-view-toggle">
+      <button class="view-toggle-btn active" id="view-rendered">Preview</button>
+      <button class="view-toggle-btn"        id="view-raw">Raw Markdown</button>
     </div>
 
     <div id="report-content"><p class="loading">Loading…</p></div>

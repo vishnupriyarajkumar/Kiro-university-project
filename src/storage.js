@@ -1,57 +1,50 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import Session from './models/Session.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirname, '..', 'data');
-const DATA_FILE = join(DATA_DIR, 'sessions.json');
-
-/** Ensure the data directory exists before reading or writing. */
-function ensureDataDir() {
-  if (!existsSync(DATA_DIR)) {
-    mkdirSync(DATA_DIR, { recursive: true });
-  }
+/**
+ * Load all sessions from MongoDB, sorted oldest-first.
+ * Returns a plain JS array matching the original JSON shape.
+ */
+export async function loadSessions() {
+  const docs = await Session.find({}).sort({ startTime: 1 }).lean();
+  // lean() returns plain objects; rename _id-free docs to match original shape
+  return docs.map(normalise);
 }
 
-/** Load all sessions from the JSON file. Returns an empty array if the file does not exist. */
-export function loadSessions() {
-  ensureDataDir();
-  if (!existsSync(DATA_FILE)) {
-    return [];
-  }
-  try {
-    const raw = readFileSync(DATA_FILE, 'utf-8');
-    return JSON.parse(raw);
-  } catch (err) {
-    throw new Error(`Failed to parse sessions file (${DATA_FILE}): ${err.message}`);
-  }
+/**
+ * Save a single new session to MongoDB.
+ * Replaces the old "write the full array" pattern — we only ever append.
+ */
+export async function saveSession(sessionData) {
+  const doc = new Session(sessionData);
+  await doc.save();
 }
 
-/** Persist the full sessions array to the JSON file. */
-export function saveSessions(sessions) {
-  ensureDataDir();
-  try {
-    writeFileSync(DATA_FILE, JSON.stringify(sessions, null, 2), 'utf-8');
-  } catch (err) {
-    throw new Error(`Failed to write sessions file (${DATA_FILE}): ${err.message}`);
-  }
+/**
+ * Legacy bulk-save kept for any callers that still pass the full array.
+ * Upserts each session by its `id` field — safe to call multiple times.
+ */
+export async function saveSessions(sessions) {
+  const ops = sessions.map(s => ({
+    updateOne: {
+      filter: { id: s.id },
+      update: { $set: s },
+      upsert: true,
+    },
+  }));
+  if (ops.length > 0) await Session.bulkWrite(ops);
 }
 
-/** Writes a Markdown string to the given file path, creating parent directories if necessary. */
-export function writeMarkdownFile(filePath, content) {
-  if (filePath == null || typeof filePath !== 'string' || filePath.trim() === '') {
-    throw new Error('writeMarkdownFile: filePath must be a non-empty, non-whitespace string');
-  }
-  if (content == null || content === '') {
-    throw new Error('writeMarkdownFile: content must be a non-empty string');
-  }
-
-  const dir = dirname(filePath);
-  mkdirSync(dir, { recursive: true });
-
-  try {
-    writeFileSync(filePath, content, 'utf-8');
-  } catch (err) {
-    throw new Error(`Failed to write Markdown file (${filePath}): ${err.message}`);
-  }
+/**
+ * Strip Mongoose internals and return a plain session object
+ * that matches the original { id, description, duration, startTime, date, completed } shape.
+ */
+function normalise(doc) {
+  return {
+    id:          doc.id,
+    description: doc.description,
+    duration:    doc.duration,
+    startTime:   doc.startTime,
+    date:        doc.date,
+    completed:   doc.completed,
+  };
 }
