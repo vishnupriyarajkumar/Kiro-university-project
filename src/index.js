@@ -121,10 +121,26 @@ program
 program
   .command('stats')
   .description('Show overall productivity stats and streaks')
-  .action(async () => {
+  .option('--json', 'Output stats as machine-readable JSON')
+  .action(async (options) => {
     try {
       const sessions = await loadSessions();
       const today = new Date().toISOString().slice(0, 10);
+
+      const stats = {
+        totalSessions: sessions.length,
+        totalMinutes: totalMinutes(sessions),
+        averageDuration: averageDuration(sessions),
+        currentStreak: currentStreak(sessions, today),
+        longestStreak: longestStreak(sessions),
+        mostProductiveDay: mostProductiveDay(sessions),
+        mostProductiveHour: mostProductiveHour(sessions),
+      };
+
+      if (options.json) {
+        console.log(JSON.stringify(stats, null, 2));
+        return;
+      }
 
       console.log(chalk.yellow.bold('\n📊 Your Productivity Stats\n'));
 
@@ -133,13 +149,13 @@ program
         return;
       }
 
-      console.log(chalk.white('  Total sessions:      ') + chalk.green.bold(sessions.length));
-      console.log(chalk.white('  Total focus time:    ') + chalk.green.bold(`${totalMinutes(sessions)} min`));
-      console.log(chalk.white('  Average duration:    ') + chalk.cyan.bold(`${averageDuration(sessions)} min`));
-      console.log(chalk.white('  Current streak:      ') + chalk.magenta.bold(`${currentStreak(sessions, today)} day(s) 🔥`));
-      console.log(chalk.white('  Longest streak:      ') + chalk.magenta.bold(`${longestStreak(sessions)} day(s)`));
-      console.log(chalk.white('  Most productive day:  ') + chalk.cyan.bold(mostProductiveDay(sessions)));
-      console.log(chalk.white('  Most productive hour: ') + chalk.cyan.bold(mostProductiveHour(sessions)));
+      console.log(chalk.white('  Total sessions:      ') + chalk.green.bold(stats.totalSessions));
+      console.log(chalk.white('  Total focus time:    ') + chalk.green.bold(`${stats.totalMinutes} min`));
+      console.log(chalk.white('  Average duration:    ') + chalk.cyan.bold(`${stats.averageDuration} min`));
+      console.log(chalk.white('  Current streak:      ') + chalk.magenta.bold(`${stats.currentStreak} day(s) 🔥`));
+      console.log(chalk.white('  Longest streak:      ') + chalk.magenta.bold(`${stats.longestStreak} day(s)`));
+      console.log(chalk.white('  Most productive day:  ') + chalk.cyan.bold(stats.mostProductiveDay));
+      console.log(chalk.white('  Most productive hour: ') + chalk.cyan.bold(stats.mostProductiveHour));
     } catch (err) {
       console.error(chalk.red.bold('Error: ') + err.message);
       process.exit(1);
