@@ -15,6 +15,7 @@ import {
   mostProductiveHour,
 } from './stats.js';
 import { generateWeeklyReport, getMondayDate } from './report.js';
+import { renderStreakCalendar } from './streakCalendar.js';
 
 const program = new Command();
 
@@ -268,48 +269,15 @@ program
       const today = new Date().toISOString().slice(0, 10);
       const current = currentStreak(sessions, today);
       const longest = longestStreak(sessions);
-      const activeDays = new Set(sessions.map((s) => s.date));
+      const sessionDates = sessions.map((s) => s.date);
 
       console.log(chalk.yellow.bold('\n🔥 Streak Overview\n'));
       console.log(chalk.white('  Current streak: ') + chalk.magenta.bold(`${current} day(s)`));
       console.log(chalk.white('  Longest streak: ') + chalk.magenta.bold(`${longest} day(s)`));
 
-      // Build a 4-week (28-day) visual calendar
-      console.log(chalk.yellow.bold('\n  Last 28 days  (● = session logged, ○ = no session)\n'));
-      console.log(chalk.gray('  Mon  Tue  Wed  Thu  Fri  Sat  Sun'));
-
-      // Find Monday 27 days ago
-      const todayDate = new Date(today + 'T00:00:00.000Z');
-      const dayOfWeek = todayDate.getUTCDay();
-      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      const startDate = new Date(todayDate);
-      startDate.setUTCDate(todayDate.getUTCDate() + diffToMonday - 21); // 3 weeks before current Monday
-
-      let row = '  ';
-      for (let i = 0; i < 28; i++) {
-        const d = new Date(startDate);
-        d.setUTCDate(startDate.getUTCDate() + i);
-        const dateStr = d.toISOString().slice(0, 10);
-        const isToday = dateStr === today;
-        const hasSession = activeDays.has(dateStr);
-
-        let cell;
-        if (isToday) {
-          cell = hasSession ? chalk.green.bold(' ● ') : chalk.red.bold(' ○ ');
-        } else if (hasSession) {
-          cell = chalk.green(' ● ');
-        } else {
-          cell = chalk.gray(' ○ ');
-        }
-
-        row += cell + ' ';
-
-        // New row every 7 days
-        if ((i + 1) % 7 === 0) {
-          console.log(row);
-          row = '  ';
-        }
-      }
+      // Render via the dedicated calendar module
+      const calendarLines = renderStreakCalendar(sessionDates, today);
+      calendarLines.forEach((line) => console.log(line));
 
       if (current === 0) {
         console.log(chalk.red('\n  ⚠️  No session today — log one to keep your streak alive!'));
