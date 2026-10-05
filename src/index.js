@@ -2,9 +2,9 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import path from 'path';
 import { writeFileSync } from 'fs';
-import { loadSessions, saveSessions } from './storage.js';
+import { loadSessions, saveSessions, saveSession, deleteSessionById, updateSessionById } from './storage.js';
 import { connectDB, disconnectDB } from './db.js';
-import { validateSession, createSession, filterByDate, filterByWeek, deleteSession, editSession, searchSessions } from './sessions.js';
+import { validateSession, createSession, filterByDate, filterByWeek, searchSessions } from './sessions.js';
 import {
   totalMinutes,
   averageDuration,
@@ -37,9 +37,8 @@ program
     }
 
     try {
-      const sessions = await loadSessions();
       const session = createSession(description, duration);
-      await saveSessions([...sessions, session]);
+      await saveSession(session);
 
       console.log(chalk.green.bold('\n✅ Session logged!'));
       console.log(chalk.white(`   ${session.description}`));
@@ -151,13 +150,11 @@ program
   .description('Delete a session by its ID')
   .action(async (id) => {
     try {
-      const sessions = await loadSessions();
-      const { found, sessions: updated } = deleteSession(sessions, id);
-      if (!found) {
+      const deleted = await deleteSessionById(id);
+      if (!deleted) {
         console.error(chalk.red.bold('Error: ') + `No session found with ID: ${id}`);
         process.exit(1);
       }
-      await saveSessions(updated);
       console.log(chalk.green.bold('\n🗑️  Session deleted.'));
       console.log(chalk.gray(`   ID: ${id}`));
     } catch (err) {
@@ -183,21 +180,13 @@ program
     if (options.duration) updates.duration = parseInt(options.duration, 10);
 
     try {
-      const sessions = await loadSessions();
-      const result = editSession(sessions, id, updates);
-
-      if (!result.found) {
+      const session = await updateSessionById(id, updates);
+      if (!session) {
         console.error(chalk.red.bold('Error: ') + `No session found with ID: ${id}`);
         process.exit(1);
       }
-      if (!result.valid) {
-        result.errors.forEach((e) => console.error(chalk.red.bold('Error: ') + e));
-        process.exit(1);
-      }
-
-      await saveSessions(result.sessions);
       console.log(chalk.green.bold('\n✏️  Session updated!'));
-      console.log(chalk.white(`   ${result.session.description}`) + chalk.cyan.bold(` [${result.session.duration} min]`));
+      console.log(chalk.white(`   ${session.description}`) + chalk.cyan.bold(` [${session.duration} min]`));
     } catch (err) {
       console.error(chalk.red.bold('Error: ') + err.message);
       process.exit(1);
