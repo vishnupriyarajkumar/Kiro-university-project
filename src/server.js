@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 
 import { connectDB } from './db.js';
 import { validateSession, createSession, filterByDate, filterByWeek } from './sessions.js';
-import { loadSessions, saveSession } from './storage.js';
+import { loadSessions, saveSession, deleteSessionById, updateSessionById } from './storage.js';
 import { totalMinutes, averageDuration, currentStreak, longestStreak, mostProductiveDay, groupByDay } from './stats.js';
 import { generateWeeklyReport, getMondayDate } from './report.js';
 
@@ -113,6 +113,11 @@ async function handleRequest(req, res) {
     try {
       const reqUrl    = new URL(req.url, `http://localhost:${PORT}`);
       const dateParam = reqUrl.searchParams.get('date');
+      // Validate date format if provided
+      if (dateParam && !/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+        json(res, 400, { error: 'Invalid date format. Use YYYY-MM-DD.' });
+        return;
+      }
       const sessions  = await loadSessions();
       const refDate   = dateParam || new Date().toISOString().slice(0, 10);
       const weekSessions = filterByWeek(sessions, refDate);
@@ -194,6 +199,53 @@ async function handleRequest(req, res) {
       const session = createSession(description, dur);
       await saveSession(session);
       json(res, 201, { session });
+    } catch (err) { json(res, 500, { error: err.message }); }
+    return;
+  }
+
+  // DELETE /api/sessions/:id
+  if (pathname.startsWith('/api/sessions/') && method === 'DELETE') {
+    const id = pathname.replace('/api/sessions/', '').trim();
+    if (!id) { json(res, 400, { error: 'Session ID is required.' }); return; }
+    try {
+      const deleted = await deleteSessionById(id);
+      if (!deleted) { json(res, 404, { error: `No session found with ID: ${id}` }); return; }
+      json(res, 200, { message: 'Session deleted.', id });
+    } catch (err) { json(res, 500, { error: err.message }); }
+    return;
+  }
+
+  // PUT /api/sessions/:id
+  if (pathname.startsWith('/api/sessions/') && method === 'PUT') {
+    const id = pathname.replace('/api/sessions/', '').trim();
+    if (!id) { json(res, 400, { error: 'Session ID is required.' }); return; }
+    try {
+      const body = await readBody(req);
+      if (!body) { json(res, 400, { error: 'Invalid JSON body.' }); return; }
+      const updates = {};
+      if (body.description !== undefined) updates.description = String(body.description).trim();
+      if (body.duration    !== undefined) updates.duration    = parseInt(body.duration, 10);
+      if (Object.keys(updates).length === 0) {
+        json(res, 400, { error: 'Provide at least description or duration to update.' });
+        return;
+      }
+      const { valid, errors } = validateSession(
+        updates.description ?? 'placeholder',
+        updates.duration    ?? 25
+      );
+      // Only validate the fields that were actually provided
+      const fieldErrors = [];
+      if (updates.description !== undefined && updates.description.length === 0) {
+        fieldErrors.push('Description must be a non-empty string.');
+      }
+      if (updates.duration !== undefined) {
+        const { errors: durErrors } = validateSession('ok', updates.duration);
+        fieldErrors.push(...durErrors);
+      }
+      if (fieldErrors.length > 0) { json(res, 400, { error: fieldErrors.join(' ') }); return; }
+      const session = await updateSessionById(id, updates);
+      if (!session) { json(res, 404, { error: `No session found with ID: ${id}` }); return; }
+      json(res, 200, { session });
     } catch (err) { json(res, 500, { error: err.message }); }
     return;
   }
