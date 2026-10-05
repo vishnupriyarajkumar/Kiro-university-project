@@ -127,6 +127,23 @@ async function handleRequest(req, res) {
     return;
   }
 
+  // GET /api/sessions/search?q=keyword
+  if (pathname === '/api/sessions/search' && method === 'GET') {
+    try {
+      const reqUrl  = new URL(req.url, `http://localhost:${PORT}`);
+      const keyword = reqUrl.searchParams.get('q');
+      if (!keyword || keyword.trim() === '') {
+        json(res, 400, { error: 'Query param "q" is required and must not be empty.' });
+        return;
+      }
+      const sessions = await loadSessions();
+      const lower    = keyword.toLowerCase();
+      const results  = sessions.filter((s) => s.description.toLowerCase().includes(lower));
+      json(res, 200, { keyword, count: results.length, sessions: results });
+    } catch (err) { json(res, 500, { error: err.message }); }
+    return;
+  }
+
   // GET /api/heatmap
   if (pathname === '/api/heatmap' && method === 'GET') {
     try {
