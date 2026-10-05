@@ -12,6 +12,7 @@ import {
   currentStreak,
   longestStreak,
   mostProductiveDay,
+  mostProductiveHour,
 } from './stats.js';
 import { generateWeeklyReport, getMondayDate } from './report.js';
 
@@ -137,7 +138,8 @@ program
       console.log(chalk.white('  Average duration:    ') + chalk.cyan.bold(`${averageDuration(sessions)} min`));
       console.log(chalk.white('  Current streak:      ') + chalk.magenta.bold(`${currentStreak(sessions, today)} day(s) 🔥`));
       console.log(chalk.white('  Longest streak:      ') + chalk.magenta.bold(`${longestStreak(sessions)} day(s)`));
-      console.log(chalk.white('  Most productive day: ') + chalk.cyan.bold(mostProductiveDay(sessions)));
+      console.log(chalk.white('  Most productive day:  ') + chalk.cyan.bold(mostProductiveDay(sessions)));
+      console.log(chalk.white('  Most productive hour: ') + chalk.cyan.bold(mostProductiveHour(sessions)));
     } catch (err) {
       console.error(chalk.red.bold('Error: ') + err.message);
       process.exit(1);

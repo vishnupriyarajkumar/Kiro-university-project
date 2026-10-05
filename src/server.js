@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 import { connectDB } from './db.js';
 import { validateSession, createSession, filterByDate, filterByWeek } from './sessions.js';
 import { loadSessions, saveSession, deleteSessionById, updateSessionById } from './storage.js';
-import { totalMinutes, averageDuration, currentStreak, longestStreak, mostProductiveDay, groupByDay } from './stats.js';
+import { totalMinutes, averageDuration, currentStreak, longestStreak, mostProductiveDay, groupByDay, mostProductiveHour } from './stats.js';
 import { generateWeeklyReport, getMondayDate } from './report.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -159,12 +159,13 @@ async function handleRequest(req, res) {
       const sessions = await loadSessions();
       const today    = new Date().toISOString().slice(0, 10);
       json(res, 200, {
-        totalSessions:    sessions.length,
-        totalMinutes:     totalMinutes(sessions),
-        averageDuration:  averageDuration(sessions),
-        currentStreak:    currentStreak(sessions, today),
-        longestStreak:    longestStreak(sessions),
-        mostProductiveDay: mostProductiveDay(sessions),
+        totalSessions:      sessions.length,
+        totalMinutes:       totalMinutes(sessions),
+        averageDuration:    averageDuration(sessions),
+        currentStreak:      currentStreak(sessions, today),
+        longestStreak:      longestStreak(sessions),
+        mostProductiveDay:  mostProductiveDay(sessions),
+        mostProductiveHour: mostProductiveHour(sessions),
       });
     } catch (err) { json(res, 500, { error: err.message }); }
     return;

@@ -91,3 +91,37 @@ export function mostProductiveDay(sessions) {
 
   return bestDay === -1 ? 'N/A' : DAY_NAMES[bestDay];
 }
+
+/**
+ * Find the hour of day (0-23) with the most total focus minutes across all sessions.
+ * Uses the startTime ISO string to extract the UTC hour.
+ * Returns a human-readable string like "9 AM" or "N/A" if no sessions have startTime.
+ */
+export function mostProductiveHour(sessions) {
+  if (sessions.length === 0) return 'N/A';
+
+  const totals = Array(24).fill(0);
+
+  for (const session of sessions) {
+    if (!session.startTime) continue;
+    const hour = new Date(session.startTime).getUTCHours();
+    totals[hour] += session.duration;
+  }
+
+  let bestHour = -1;
+  let bestTotal = 0;
+
+  for (let h = 0; h < 24; h++) {
+    if (totals[h] > bestTotal) {
+      bestTotal = totals[h];
+      bestHour = h;
+    }
+  }
+
+  if (bestHour === -1) return 'N/A';
+
+  // Format as "9 AM" / "2 PM"
+  const period = bestHour < 12 ? 'AM' : 'PM';
+  const displayHour = bestHour % 12 === 0 ? 12 : bestHour % 12;
+  return `${displayHour} ${period}`;
+}
