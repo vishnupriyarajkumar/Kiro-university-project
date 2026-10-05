@@ -6,82 +6,164 @@
   <title>Pomodoro Logger — Home</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .icon-3d {
+      display: inline-block;
+      vertical-align: middle;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), filter 0.2s;
+      user-select: none;
+    }
+    .icon-3d:hover {
+      transform: scale(1.18) translateY(-3px) rotate(-4deg);
+      filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+    }
+    /* Hero floating tomato — keep it animated */
+    .hero-emoji-3d {
+      display: block;
+      margin: 0 auto 20px;
+      animation: float3d 4s ease-in-out infinite;
+      filter: drop-shadow(0 8px 28px rgba(74,222,128,0.45));
+    }
+    @keyframes float3d {
+      0%,100% { transform: translateY(0) rotate(-3deg) scale(1);   }
+      50%      { transform: translateY(-14px) rotate(3deg) scale(1.04); }
+    }
+    /* Stat card icons */
+    .qs-icon-3d { display: block; margin: 0 auto 10px; }
+    /* Feature card icons */
+    .feature-icon-3d { display: block; margin-bottom: 12px; }
+  </style>
 </head>
 <body>
   <div class="page">
 
-    <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+    <!-- ── Hero ──────────────────────────────────────────────────────── -->
     <div class="hero">
-      <div class="hero-badge">🍅 Pomodoro Logger</div>
-      <span class="hero-emoji">🍅</span>
+      <div class="hero-badge">✦ Focus &amp; Flow</div>
+      <img class="hero-emoji-3d"
+           src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/🍅_3d.png"
+           width="80" height="80" alt="tomato" draggable="false" />
       <h1 class="hero-title">Stay in the Zone</h1>
-      <p class="hero-sub">Log focus sessions, track streaks, and understand your productivity patterns — all in one place.</p>
+      <p class="hero-sub">
+        Log focus sessions, track streaks, and understand your
+        productivity patterns — all in one place.
+      </p>
       <div class="hero-cta-row">
-        <a href="/timer.html" class="btn-hero-primary">▶ Start Timer</a>
-        <a href="/log.html"   class="btn-hero-secondary">📝 Log Session</a>
+        <a href="/timer.html" class="btn-hero-primary">▶&nbsp; Start Timer</a>
+        <a href="/log.html"   class="btn-hero-secondary">📝&nbsp; Log Session</a>
       </div>
     </div>
 
-    <!-- ── Quick stats ───────────────────────────────────────────────────── -->
-    <p class="section-title">Today at a glance</p>
-    <div class="quick-stats">
+    <!-- ── Quick stats ────────────────────────────────────────────────── -->
+    <div class="section-label">Today at a glance</div>
+    <div class="quick-stats stagger">
       <div class="qs-card">
-        <div class="qs-icon">🍅</div>
+        <div class="qs-card-glow"></div>
+        <img class="qs-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/🍅_3d.png"
+             width="40" height="40" alt="sessions" draggable="false" />
         <div class="qs-value" id="qs-today">—</div>
         <div class="qs-label">Sessions Today</div>
       </div>
       <div class="qs-card">
-        <div class="qs-icon">⏱️</div>
+        <div class="qs-card-glow"></div>
+        <img class="qs-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/⏱️_3d.png"
+             width="40" height="40" alt="minutes" draggable="false" />
         <div class="qs-value" id="qs-mins">—</div>
         <div class="qs-label">Minutes Today</div>
       </div>
       <div class="qs-card">
-        <div class="qs-icon">🔥</div>
+        <div class="qs-card-glow"></div>
+        <img class="qs-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/🔥_3d.png"
+             width="40" height="40" alt="streak" draggable="false" />
         <div class="qs-value" id="qs-streak">—</div>
         <div class="qs-label">Day Streak</div>
       </div>
     </div>
 
-    <!-- ── Feature cards ─────────────────────────────────────────────────── -->
-    <p class="section-title">What you can do</p>
-    <div class="feature-grid">
-      <a href="/timer.html" class="feature-card">
-        <span class="feature-icon">⏰</span>
-        <div class="feature-title">Focus Timer</div>
-        <div class="feature-desc">25-minute Pomodoro cycles with auto rest, chime alerts, confetti on cycle complete, and keyboard shortcuts.</div>
-        <span class="feature-arrow">→</span>
+    <!-- ── Feature bento grid ─────────────────────────────────────────── -->
+    <div class="section-label">What you can do</div>
+    <div class="feature-grid stagger">
+
+      <a href="/timer.html" class="feature-card fc-3 fc-green">
+        <img class="feature-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/⏰_3d.png"
+             width="52" height="52" alt="timer" draggable="false" />
+        <div class="fc-bottom">
+          <div>
+            <div class="feature-title">Focus Timer</div>
+            <div class="feature-desc">25-min cycles, voice control, confetti &amp; keyboard shortcuts.</div>
+          </div>
+          <span class="feature-arrow">→</span>
+        </div>
       </a>
-      <a href="/log.html" class="feature-card">
-        <span class="feature-icon">📝</span>
-        <div class="feature-title">Log Sessions</div>
-        <div class="feature-desc">Manually log any focus session with a description and duration. View your most recent sessions instantly.</div>
-        <span class="feature-arrow">→</span>
+
+      <a href="/log.html" class="feature-card fc-3 fc-purple">
+        <img class="feature-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/📝_3d.png"
+             width="52" height="52" alt="log" draggable="false" />
+        <div class="fc-bottom">
+          <div>
+            <div class="feature-title">Log Sessions</div>
+            <div class="feature-desc">Natural language, voice, or manual entry with presets.</div>
+          </div>
+          <span class="feature-arrow">→</span>
+        </div>
       </a>
-      <a href="/history.html" class="feature-card">
-        <span class="feature-icon">📅</span>
-        <div class="feature-title">Session History</div>
-        <div class="feature-desc">Browse today's sessions, navigate week by week, and see your 12-week focus heatmap.</div>
-        <span class="feature-arrow">→</span>
+
+      <a href="/history.html" class="feature-card fc-2">
+        <img class="feature-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/📅_3d.png"
+             width="48" height="48" alt="history" draggable="false" />
+        <div class="fc-bottom">
+          <div>
+            <div class="feature-title">History</div>
+            <div class="feature-desc">Week view &amp; 12-week heatmap.</div>
+          </div>
+          <span class="feature-arrow">→</span>
+        </div>
       </a>
-      <a href="/stats.html" class="feature-card">
-        <span class="feature-icon">📊</span>
-        <div class="feature-title">Analytics</div>
-        <div class="feature-desc">Total sessions, streaks, average duration, most productive day, and a weekly bar chart.</div>
-        <span class="feature-arrow">→</span>
+
+      <a href="/stats.html" class="feature-card fc-2 fc-amber">
+        <img class="feature-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/📊_3d.png"
+             width="48" height="48" alt="analytics" draggable="false" />
+        <div class="fc-bottom">
+          <div>
+            <div class="feature-title">Analytics</div>
+            <div class="feature-desc">Streaks, averages &amp; bar chart.</div>
+          </div>
+          <span class="feature-arrow">→</span>
+        </div>
       </a>
-      <a href="/report.html" class="feature-card">
-        <span class="feature-icon">📄</span>
-        <div class="feature-title">Weekly Report</div>
-        <div class="feature-desc">Generate a Markdown report of your week's sessions. Preview it here or download to your desktop.</div>
-        <span class="feature-arrow">→</span>
+
+      <a href="/report.html" class="feature-card fc-2 fc-blue">
+        <img class="feature-icon-3d icon-3d"
+             src="https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/📄_3d.png"
+             width="48" height="48" alt="report" draggable="false" />
+        <div class="fc-bottom">
+          <div>
+            <div class="feature-title">Report</div>
+            <div class="feature-desc">Weekly Markdown export.</div>
+          </div>
+          <span class="feature-arrow">→</span>
+        </div>
       </a>
+
     </div>
 
-    <!-- ── Recent sessions ───────────────────────────────────────────────── -->
-    <p class="section-title">Recent sessions</p>
-    <div id="recent-sessions"><div class="empty-card">Loading…</div></div>
+    <!-- ── Recent sessions ──────────────────────────────────────────── -->
+    <div class="section-label">Recent sessions</div>
+    <div id="recent-sessions">
+      <div class="sessions-glass">
+        <div class="sessions-glass-header"><span>Loading…</span></div>
+      </div>
+    </div>
 
   </div>
 
@@ -91,19 +173,23 @@
 
     const API = '';
 
-    /** Animate a number from 0 to target. */
     function animateCount(el, target) {
-      const start    = 0;
-      const duration = 600;
-      const startTs  = performance.now();
-
-      function step(ts) {
-        const progress = Math.min((ts - startTs) / duration, 1);
-        const eased    = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-        el.textContent = Math.round(start + (target - start) * eased);
-        if (progress < 1) requestAnimationFrame(step);
+      const duration = 650;
+      const start = performance.now();
+      function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const e = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * e);
+        if (p < 1) requestAnimationFrame(step);
+        else el.textContent = target;
       }
       requestAnimationFrame(step);
+    }
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     async function loadQuickStats() {
@@ -112,23 +198,10 @@
           fetch(API + '/api/sessions/today').then(r => r.json()),
           fetch(API + '/api/stats').then(r => r.json()),
         ]);
-
-        const todayEl  = document.getElementById('qs-today');
-        const minsEl   = document.getElementById('qs-mins');
-        const streakEl = document.getElementById('qs-streak');
-
-        animateCount(todayEl,  todayData.sessions.length);
-        animateCount(minsEl,   todayData.totalMinutes);
-        animateCount(streakEl, statsData.currentStreak);
-      } catch (_) {
-        /* leave as — on error */
-      }
-    }
-
-    function esc(str) {
-      return String(str)
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        animateCount(document.getElementById('qs-today'),  todayData.sessions.length);
+        animateCount(document.getElementById('qs-mins'),   todayData.totalMinutes);
+        animateCount(document.getElementById('qs-streak'), statsData.currentStreak);
+      } catch (_) { /* leave as — */ }
     }
 
     async function loadRecentSessions() {
@@ -137,33 +210,43 @@
         const data = await fetch(API + '/api/sessions/today').then(r => r.json());
 
         if (data.sessions.length === 0) {
-          el.innerHTML = `<div class="empty-card">
-            No sessions today yet —
-            <a href="/timer.html" style="color:var(--brand-500);font-weight:700">start your first timer</a>.
-          </div>`;
+          el.innerHTML = `
+            <div class="sessions-glass">
+              <div class="sessions-glass-header"><span>Today's sessions</span></div>
+              <div style="padding:40px;text-align:center;color:var(--tw40);font-size:0.88rem">
+                No sessions today yet —
+                <a href="/timer.html" style="color:var(--neon);font-weight:700;text-decoration:none">start your first timer</a>.
+              </div>
+            </div>`;
           return;
         }
 
-        const items = [...data.sessions].reverse().slice(0, 5).map(s => `
-          <div class="session-item">
+        const rows = [...data.sessions].reverse().slice(0, 6).map(s => `
+          <div class="session-row">
             <div>
-              <div class="session-desc">${esc(s.description)}</div>
-              <div class="session-meta">${s.date} · ${s.startTime.slice(11,16)} UTC</div>
+              <div class="session-row-desc">${esc(s.description)}</div>
+              <div class="session-row-meta">${s.date} · ${s.startTime.slice(11,16)} UTC</div>
             </div>
-            <span class="session-dur">${s.duration} min</span>
+            <span class="session-row-pill">${s.duration} min</span>
           </div>`).join('');
 
         el.innerHTML = `
-          <div class="sessions-card">
-            <h3>Today's sessions</h3>
-            ${items}
-            <div class="total-row">
-              <span>Total focus time</span>
+          <div class="sessions-glass">
+            <div class="sessions-glass-header">
+              <span>Today's sessions</span>
+              <a href="/history.html">View all →</a>
+            </div>
+            ${rows}
+            <div class="sessions-glass-footer">
+              <span>Total today</span>
               <span>${data.totalMinutes} min · ${data.sessions.length} session(s)</span>
             </div>
           </div>`;
       } catch (_) {
-        el.innerHTML = `<div class="empty-card">Could not load sessions.</div>`;
+        el.innerHTML = `
+          <div class="sessions-glass">
+            <div style="padding:32px;text-align:center;color:var(--tw40);font-size:0.87rem">Could not load sessions.</div>
+          </div>`;
       }
     }
 

@@ -1,7 +1,9 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import path from 'path';
-import { loadSessions, saveSessions, writeMarkdownFile } from './storage.js';
+import { writeFileSync } from 'fs';
+import { loadSessions, saveSessions } from './storage.js';
+import { connectDB, disconnectDB } from './db.js';
 import { validateSession, createSession, filterByDate, filterByWeek, deleteSession, editSession, searchSessions } from './sessions.js';
 import {
   totalMinutes,
@@ -25,7 +27,7 @@ program
   .command('log <description>')
   .description('Log a completed focus session')
   .requiredOption('-d, --duration <minutes>', 'Session duration in minutes')
-  .action((description, options) => {
+  .action(async (description, options) => {
     const duration = parseInt(options.duration, 10);
     const { valid, errors } = validateSession(description, duration);
 
@@ -35,9 +37,9 @@ program
     }
 
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const session = createSession(description, duration);
-      saveSessions([...sessions, session]);
+      await saveSessions([...sessions, session]);
 
       console.log(chalk.green.bold('\n✅ Session logged!'));
       console.log(chalk.white(`   ${session.description}`));
@@ -52,9 +54,9 @@ program
 program
   .command('today')
   .description("Show today's focus sessions")
-  .action(() => {
+  .action(async () => {
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const today = new Date().toISOString().slice(0, 10);
       const todaySessions = filterByDate(sessions, today);
 
@@ -83,9 +85,9 @@ program
 program
   .command('week')
   .description("Show this week's focus sessions grouped by day")
-  .action(() => {
+  .action(async () => {
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const today = new Date().toISOString().slice(0, 10);
       const weekSessions = filterByWeek(sessions, today);
 
@@ -119,9 +121,9 @@ program
 program
   .command('stats')
   .description('Show overall productivity stats and streaks')
-  .action(() => {
+  .action(async () => {
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const today = new Date().toISOString().slice(0, 10);
 
       console.log(chalk.yellow.bold('\n📊 Your Productivity Stats\n'));
@@ -147,15 +149,15 @@ program
 program
   .command('delete <id>')
   .description('Delete a session by its ID')
-  .action((id) => {
+  .action(async (id) => {
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const { found, sessions: updated } = deleteSession(sessions, id);
       if (!found) {
         console.error(chalk.red.bold('Error: ') + `No session found with ID: ${id}`);
         process.exit(1);
       }
-      saveSessions(updated);
+      await saveSessions(updated);
       console.log(chalk.green.bold('\n🗑️  Session deleted.'));
       console.log(chalk.gray(`   ID: ${id}`));
     } catch (err) {
@@ -170,7 +172,7 @@ program
   .description('Edit a session description or duration by its ID')
   .option('-d, --description <text>', 'New description')
   .option('-m, --duration <minutes>', 'New duration in minutes')
-  .action((id, options) => {
+  .action(async (id, options) => {
     if (!options.description && !options.duration) {
       console.error(chalk.red.bold('Error: ') + 'Provide at least --description or --duration to update.');
       process.exit(1);
@@ -181,7 +183,7 @@ program
     if (options.duration) updates.duration = parseInt(options.duration, 10);
 
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const result = editSession(sessions, id, updates);
 
       if (!result.found) {
@@ -193,7 +195,7 @@ program
         process.exit(1);
       }
 
-      saveSessions(result.sessions);
+      await saveSessions(result.sessions);
       console.log(chalk.green.bold('\n✏️  Session updated!'));
       console.log(chalk.white(`   ${result.session.description}`) + chalk.cyan.bold(` [${result.session.duration} min]`));
     } catch (err) {
@@ -206,9 +208,9 @@ program
 program
   .command('search <keyword>')
   .description('Search sessions by keyword in description')
-  .action((keyword) => {
+  .action(async (keyword) => {
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const results = searchSessions(sessions, keyword);
 
       console.log(chalk.yellow.bold(`\n🔍 Search results for "${keyword}"`));
@@ -236,9 +238,9 @@ program
 program
   .command('streak')
   .description('Show streak details with a visual 4-week calendar')
-  .action(() => {
+  .action(async () => {
     try {
-      const sessions = loadSessions();
+      const sessions = await loadSessions();
       const today = new Date().toISOString().slice(0, 10);
       const current = currentStreak(sessions, today);
       const longest = longestStreak(sessions);
@@ -297,7 +299,12 @@ program
   });
 
 // ── export command ───────────────────────────────────────────────────────────
-function exportAction(options) {
+/** Write a markdown string to the given file path. */
+function writeMarkdownFile(outputPath, content) {
+  writeFileSync(outputPath, content, 'utf8');
+}
+
+async function exportAction(options) {
   // Validate --output at the CLI boundary before any I/O
   if (options.output !== undefined && options.output.trim() === '') {
     console.error(chalk.red.bold('Error: ') + 'Output path cannot be empty.');
@@ -306,7 +313,7 @@ function exportAction(options) {
 
   let sessions;
   try {
-    sessions = loadSessions();
+    sessions = await loadSessions();
   } catch (err) {
     console.error(chalk.red.bold('Error: ') + err.message);
     process.exit(1);
@@ -343,4 +350,14 @@ program
   .option('-o, --output <path>', 'Output file path')
   .action(exportAction);
 
-program.parse(process.argv);
+// Connect to DB, run commands, then disconnect cleanly
+async function main() {
+  await connectDB();
+  await program.parseAsync(process.argv);
+  await disconnectDB();
+}
+
+main().catch((err) => {
+  console.error(chalk.red.bold('Fatal: ') + err.message);
+  process.exit(1);
+});

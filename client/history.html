@@ -6,22 +6,23 @@
   <title>Pomodoro — History</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="page">
 
-    <p class="section-title">📅 Session History</p>
+    <div class="page-header">
+      <div class="page-eyebrow">📅 History</div>
+      <h1>Session History</h1>
+      <p>Browse today, navigate weeks, or explore your 12-week heatmap.</p>
+    </div>
 
     <!-- Sub-tabs -->
     <div class="history-tabs" role="tablist">
-      <button class="history-tab active" role="tab"
-        data-htab="today" aria-selected="true">Today</button>
-      <button class="history-tab" role="tab"
-        data-htab="week"  aria-selected="false">This Week</button>
-      <button class="history-tab" role="tab"
-        data-htab="heatmap" aria-selected="false">🔥 Heatmap</button>
+      <button class="history-tab active" role="tab" data-htab="today"   aria-selected="true" >Today</button>
+      <button class="history-tab"        role="tab" data-htab="week"    aria-selected="false">This Week</button>
+      <button class="history-tab"        role="tab" data-htab="heatmap" aria-selected="false">🔥 Heatmap</button>
     </div>
 
     <!-- Today panel -->
@@ -32,9 +33,9 @@
     <!-- Week panel -->
     <div class="history-panel" id="hpanel-week">
       <div class="week-nav">
-        <button class="week-nav-btn" id="week-prev">&#8592; Prev</button>
+        <button class="week-nav-btn" id="week-prev">← Prev</button>
         <span   class="week-nav-label" id="week-nav-label">This week</span>
-        <button class="week-nav-btn" id="week-next" disabled>Next &#8594;</button>
+        <button class="week-nav-btn" id="week-next" disabled>Next →</button>
       </div>
       <div id="week-content" class="gap-12"><p class="loading">Loading…</p></div>
     </div>
@@ -46,7 +47,6 @@
 
   </div>
 
-  <!-- shared tooltip -->
   <div id="heatmap-tooltip" class="heatmap-tooltip"></div>
 
   <script type="module" src="pages/history.js"></script>

@@ -1,124 +1,164 @@
 /**
- * Injects the shared site navigation bar into every page.
- * Call mountNav() once per page, passing the current page key.
+ * Mounts the sidebar navigation into every page.
+ * Call mountNav(activeKey) once at the top of each page module.
  * Valid keys: 'home' | 'timer' | 'log' | 'history' | 'stats' | 'report'
- *
- * Features:
- *   - Glassmorphism sticky nav with active-page highlight
- *   - Mobile hamburger menu with animated open/close
- *   - Keyboard accessible (Escape closes the menu)
  */
 
-const NAV_LINKS = [
-  { key: 'home',    href: '/',             label: '🏠 Home'    },
-  { key: 'timer',   href: '/timer.html',   label: '🍅 Timer'   },
-  { key: 'log',     href: '/log.html',     label: '📝 Log'     },
-  { key: 'history', href: '/history.html', label: '📅 History' },
-  { key: 'stats',   href: '/stats.html',   label: '📊 Stats'   },
-  { key: 'report',  href: '/report.html',  label: '📄 Report'  },
+const CDN = 'https://cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets';
+
+const NAV_ITEMS = [
+  { key: 'home',    href: '/',             emoji: '🏠', label: 'Home'    },
+  { key: 'timer',   href: '/timer.html',   emoji: '⏰', label: 'Timer'   },
+  { key: 'log',     href: '/log.html',     emoji: '📝', label: 'Log'     },
+  { key: 'history', href: '/history.html', emoji: '📅', label: 'History' },
+  { key: 'stats',   href: '/stats.html',   emoji: '📊', label: 'Stats'   },
+  { key: 'report',  href: '/report.html',  emoji: '📄', label: 'Report'  },
 ];
 
-/** Render and prepend the nav bar to <body>. */
-export function mountNav(activeKey) {
-  const nav = document.createElement('nav');
-  nav.className = 'site-nav';
-  nav.setAttribute('aria-label', 'Site navigation');
+/** Return a 3D Fluent Emoji <img> tag for the sidebar. */
+function navIcon(emoji) {
+  const url = `${CDN}/${encodeURIComponent(emoji)}_3d.png`;
+  return `<img class="nav-icon-3d" src="${url}" width="20" height="20" alt="" draggable="false" loading="lazy" />`;
+}
 
-  // Brand logo
+/** Build and inject the sidebar + mobile toggle into <body>. */
+export function mountNav(activeKey) {
+  wrapMainContent();
+
+  const sidebar = buildSidebar(activeKey);
+  document.body.insertBefore(sidebar, document.body.firstChild);
+
+  const toggle = buildToggle();
+  document.body.insertBefore(toggle, document.body.firstChild);
+
+  const overlay = buildOverlay();
+  document.body.appendChild(overlay);
+
+  wireMobileMenu(toggle, sidebar, overlay);
+}
+
+/** Wrap all existing body children in a .main-content div. */
+function wrapMainContent() {
+  const children = Array.from(document.body.childNodes);
+  const wrapper  = document.createElement('div');
+  wrapper.className = 'main-content';
+  children.forEach(child => wrapper.appendChild(child));
+  document.body.appendChild(wrapper);
+}
+
+/** Build the sidebar element. */
+function buildSidebar(activeKey) {
+  const sidebar = document.createElement('aside');
+  sidebar.className = 'sidebar';
+  sidebar.id = 'sidebar';
+  sidebar.setAttribute('aria-label', 'Site navigation');
+
+  // Brand — 3D tomato
   const brand = document.createElement('a');
-  brand.className = 'brand';
+  brand.className = 'sidebar-brand';
   brand.href = '/';
   brand.setAttribute('aria-label', 'Pomodoro Logger home');
-  brand.innerHTML = '<span class="brand-icon">🍅</span> Pomodoro';
-  nav.appendChild(brand);
-
-  // Hamburger button — visible only on mobile via CSS
-  const hamburger = document.createElement('button');
-  hamburger.className = 'nav-hamburger';
-  hamburger.setAttribute('aria-label', 'Toggle navigation menu');
-  hamburger.setAttribute('aria-expanded', 'false');
-  hamburger.setAttribute('aria-controls', 'nav-links');
-  hamburger.innerHTML = `
-    <span></span>
-    <span></span>
-    <span></span>
+  brand.innerHTML = `
+    <img class="sidebar-brand-icon-3d"
+         src="${CDN}/${encodeURIComponent('🍅')}_3d.png"
+         width="32" height="32" alt="Pomodoro" draggable="false" />
+    <span class="sidebar-brand-name">Pomodoro</span>
   `;
-  nav.appendChild(hamburger);
+  sidebar.appendChild(brand);
 
-  // Links group
-  const group = document.createElement('div');
-  group.className = 'nav-links-group';
-  group.id = 'nav-links';
+  // Section label
+  const sectionLabel = document.createElement('div');
+  sectionLabel.className = 'nav-section-label';
+  sectionLabel.textContent = 'Navigation';
+  sidebar.appendChild(sectionLabel);
 
-  NAV_LINKS.forEach(({ key, href, label }) => {
+  // Nav links
+  NAV_ITEMS.forEach(({ key, href, emoji, label }) => {
     const a = document.createElement('a');
-    a.href = href;
-    a.className = 'nav-link' + (key === activeKey ? ' active' : '');
-    a.textContent = label;
-    if (key === activeKey) {
-      a.setAttribute('aria-current', 'page');
-    }
-    group.appendChild(a);
+    a.href      = href;
+    a.className = 'nav-item' + (key === activeKey ? ' active' : '');
+    if (key === activeKey) a.setAttribute('aria-current', 'page');
+    a.innerHTML = `${navIcon(emoji)}<span class="nav-label">${label}</span>`;
+    sidebar.appendChild(a);
   });
 
-  nav.appendChild(group);
-  document.body.prepend(nav);
+  // Spacer + divider + footer
+  const spacer = document.createElement('div');
+  spacer.className = 'sidebar-spacer';
+  sidebar.appendChild(spacer);
 
-  // Wire hamburger toggle
-  wireHamburger(hamburger, group);
+  const divider = document.createElement('div');
+  divider.className = 'sidebar-divider';
+  sidebar.appendChild(divider);
+
+  const footer = document.createElement('div');
+  footer.className = 'sidebar-footer';
+  footer.innerHTML = `<span class="sidebar-status-dot"></span> Session active`;
+  sidebar.appendChild(footer);
+
+  return sidebar;
 }
 
-/** Animate hamburger lines and toggle the nav-links-group open/closed. */
-function wireHamburger(btn, group) {
+/** Build the mobile hamburger toggle button. */
+function buildToggle() {
+  const btn = document.createElement('button');
+  btn.className = 'sidebar-toggle';
+  btn.setAttribute('aria-label', 'Open navigation menu');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'sidebar');
+  btn.innerHTML = `<span></span><span></span><span></span>`;
+  return btn;
+}
+
+/** Build the translucent overlay for mobile. */
+function buildOverlay() {
+  const el = document.createElement('div');
+  el.className = 'sidebar-overlay';
+  return el;
+}
+
+/** Wire open/close behavior for the mobile hamburger. */
+function wireMobileMenu(toggle, sidebar, overlay) {
   let isOpen = false;
 
-  function openMenu() {
+  function open() {
     isOpen = true;
-    group.classList.add('open');
-    btn.setAttribute('aria-expanded', 'true');
-    animateHamburger(btn, true);
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Close navigation menu');
+    animateHamburger(toggle, true);
   }
 
-  function closeMenu() {
+  function close() {
     isOpen = false;
-    group.classList.remove('open');
-    btn.setAttribute('aria-expanded', 'false');
-    animateHamburger(btn, false);
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open navigation menu');
+    animateHamburger(toggle, false);
   }
 
-  btn.addEventListener('click', () => {
-    if (isOpen) closeMenu();
-    else openMenu();
-  });
-
-  // Close on Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isOpen) closeMenu();
-  });
-
-  // Close when a nav link is clicked (single-page navigation)
-  group.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => { if (isOpen) closeMenu(); });
-  });
-
-  // Close when clicking outside the nav
-  document.addEventListener('click', (e) => {
-    if (isOpen && !btn.closest('nav').contains(e.target)) closeMenu();
+  toggle.addEventListener('click', () => isOpen ? close() : open());
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) close(); });
+  sidebar.querySelectorAll('.nav-item').forEach(a => {
+    a.addEventListener('click', () => { if (isOpen) close(); });
   });
 }
 
-/** Animate the three hamburger spans into an X (open) or back (close). */
+/** Animate hamburger spans into X or back. */
 function animateHamburger(btn, open) {
   const [top, mid, bot] = btn.querySelectorAll('span');
   if (open) {
-    top.style.transform   = 'translateY(7px) rotate(45deg)';
-    mid.style.opacity     = '0';
-    mid.style.transform   = 'scaleX(0)';
-    bot.style.transform   = 'translateY(-7px) rotate(-45deg)';
+    top.style.transform = 'translateY(7px) rotate(45deg)';
+    mid.style.opacity   = '0';
+    mid.style.transform = 'scaleX(0)';
+    bot.style.transform = 'translateY(-7px) rotate(-45deg)';
   } else {
-    top.style.transform   = '';
-    mid.style.opacity     = '';
-    mid.style.transform   = '';
-    bot.style.transform   = '';
+    top.style.transform = '';
+    mid.style.opacity   = '';
+    mid.style.transform = '';
+    bot.style.transform = '';
   }
 }

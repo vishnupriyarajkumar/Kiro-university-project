@@ -6,24 +6,25 @@
   <title>Pomodoro — Analytics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="page">
 
-    <p class="section-title">📊 Analytics</p>
-    <p class="section-subtitle">All-time stats and weekly activity.</p>
+    <div class="page-header">
+      <div class="page-eyebrow">📊 Analytics</div>
+      <h1>Your Focus Stats</h1>
+      <p>All-time totals, streaks, and weekly activity at a glance.</p>
+    </div>
 
-    <!-- KPI grid -->
+    <div class="section-label">Key metrics</div>
     <div id="stats-grid-content"><p class="loading">Loading…</p></div>
 
-    <!-- Weekly bar chart -->
-    <p class="section-title" style="margin-top:28px">This week — daily minutes</p>
+    <div class="section-label" style="margin-top:32px">This week — daily minutes</div>
     <div id="chart-content"><p class="loading">Loading…</p></div>
 
-    <!-- Insight cards -->
-    <p class="section-title" style="margin-top:28px">Insights</p>
+    <div class="section-label" style="margin-top:32px">Insights</div>
     <div id="insights-content"><p class="loading">Loading…</p></div>
 
   </div>

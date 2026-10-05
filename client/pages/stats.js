@@ -1,4 +1,5 @@
 import { mountNav } from '../nav.js';
+import { icon } from '../icons.js';
 mountNav('stats');
 
 const API = '';
@@ -55,22 +56,19 @@ async function loadStats() {
     }
 
     const cards = [
-      { icon: '🍅', id: 'sv-sessions', value: d.totalSessions,    label: 'Total Sessions'  },
-      { icon: '⏱️', id: 'sv-minutes',  value: d.totalMinutes,     label: 'Total Minutes'   },
-      { icon: '🕐', id: 'sv-avg',      value: d.averageDuration,  label: 'Avg Duration'    },
-      { icon: '🔥', id: 'sv-streak',   value: d.currentStreak,    label: 'Current Streak'  },
-      { icon: '🏆', id: 'sv-longest',  value: d.longestStreak,    label: 'Longest Streak'  },
-      {
-        icon: '⭐', id: 'sv-best', value: null,
-        label: 'Best Day', text: esc(d.mostProductiveDay),
-      },
+      { iconName: 'tomato',   id: 'sv-sessions', value: d.totalSessions,   label: 'Total Sessions' },
+      { iconName: 'stopwatch',id: 'sv-minutes',  value: d.totalMinutes,    label: 'Total Minutes'  },
+      { iconName: 'clock',    id: 'sv-avg',      value: d.averageDuration, label: 'Avg Duration'   },
+      { iconName: 'fire',     id: 'sv-streak',   value: d.currentStreak,   label: 'Current Streak' },
+      { iconName: 'trophy',   id: 'sv-longest',  value: d.longestStreak,   label: 'Longest Streak' },
+      { iconName: 'star',     id: 'sv-best',     value: null,              label: 'Best Day', text: esc(d.mostProductiveDay) },
     ];
 
     el.innerHTML = `
       <div class="stats-grid">
         ${cards.map(c => `
           <div class="stat-card">
-            <div class="stat-icon">${c.icon}</div>
+            <div class="stat-icon">${icon(c.iconName, 40)}</div>
             <div class="stat-value" id="${c.id}"
               style="${c.value === null ? 'font-size:1rem;padding-top:6px' : ''}">
               ${c.value === null ? c.text : '0'}
@@ -158,23 +156,23 @@ function loadInsights(d) {
     ? `Great depth — your average session is ${d.averageDuration} min.`
     : `Your average is ${d.averageDuration} min. Try aiming for 25 min for deeper focus.`;
 
-  const streakIcon = d.currentStreak >= 7 ? '🚀' : d.currentStreak >= 3 ? '🔥' : '💡';
+  const streakIcon = d.currentStreak >= 7 ? icon('rocket', 36) : d.currentStreak >= 3 ? icon('fire', 36) : icon('bulb', 36);
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="insight-card">
-        <h4>${streakIcon} Streak</h4>
-        <div class="insight-value">${d.currentStreak} day${d.currentStreak !== 1 ? 's' : ''}</div>
+        <h4>Streak</h4>
+        <div class="insight-value" style="display:flex;align-items:center;gap:10px">${streakIcon} ${d.currentStreak} day${d.currentStreak !== 1 ? 's' : ''}</div>
         <div class="insight-sub">${streakMsg}</div>
       </div>
       <div class="insight-card">
-        <h4>🕐 Avg Session</h4>
-        <div class="insight-value">${d.averageDuration} min</div>
+        <h4>Avg Session</h4>
+        <div class="insight-value" style="display:flex;align-items:center;gap:10px">${icon('clock', 36)} ${d.averageDuration} min</div>
         <div class="insight-sub">${avgMsg}</div>
       </div>
       <div class="insight-card" style="grid-column:1/-1">
-        <h4>⭐ Most Productive Day</h4>
-        <div class="insight-value">${esc(d.mostProductiveDay)}</div>
+        <h4>Most Productive Day</h4>
+        <div class="insight-value" style="display:flex;align-items:center;gap:10px">${icon('star', 36)} ${esc(d.mostProductiveDay)}</div>
         <div class="insight-sub">
           Plan your deepest work sessions on ${esc(d.mostProductiveDay)}s for best results.
         </div>
