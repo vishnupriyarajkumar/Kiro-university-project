@@ -182,6 +182,8 @@ program
   });
 
 // ── edit command ─────────────────────────────────────────────────────────────
+const MAX_DESCRIPTION_LENGTH = 200;
+
 program
   .command('edit <id>')
   .description('Edit a session description or duration by its ID')
@@ -194,8 +196,23 @@ program
     }
 
     const updates = {};
-    if (options.description) updates.description = options.description;
-    if (options.duration) updates.duration = parseInt(options.duration, 10);
+
+    if (options.description !== undefined) {
+      const trimmed = options.description.trim();
+      if (trimmed.length === 0) {
+        console.error(chalk.red.bold('Error: ') + 'Description cannot be empty or whitespace only.');
+        process.exit(1);
+      }
+      if (trimmed.length > MAX_DESCRIPTION_LENGTH) {
+        console.error(chalk.red.bold('Error: ') + `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer.`);
+        process.exit(1);
+      }
+      updates.description = trimmed;
+    }
+
+    if (options.duration !== undefined) {
+      updates.duration = parseInt(options.duration, 10);
+    }
 
     try {
       const session = await updateSessionById(id, updates);
