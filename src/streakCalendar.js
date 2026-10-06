@@ -8,7 +8,10 @@ import chalk from 'chalk';
 const CALENDAR_DAYS = 28;
 const WEEKS = 4;
 
-/** Build the array of 28 date strings starting from the Monday 3 weeks before the current week's Monday. */
+/** Build the array of 28 date strings starting from the Monday 3 weeks before the current week's Monday.
+ * @param {string} today - Today's date as YYYY-MM-DD.
+ * @returns {string[]} Array of 28 consecutive YYYY-MM-DD strings starting on a Monday.
+ */
 function buildCalendarDates(today) {
   const todayDate = new Date(today + 'T00:00:00.000Z');
   const dayOfWeek = todayDate.getUTCDay();
@@ -23,7 +26,12 @@ function buildCalendarDates(today) {
   });
 }
 
-/** Format a single calendar cell as a coloured ● or ○ symbol. */
+/** Format a single calendar cell as a coloured ● or ○ symbol.
+ * @param {string} dateStr - The cell's YYYY-MM-DD date.
+ * @param {string} today - Today's YYYY-MM-DD date (highlighted in red/green).
+ * @param {Set<string>} activeDays - Set of dates that have at least one session.
+ * @returns {string} An ANSI-coloured cell string.
+ */
 function formatCell(dateStr, today, activeDays) {
   const isToday = dateStr === today;
   const hasSession = activeDays.has(dateStr);
