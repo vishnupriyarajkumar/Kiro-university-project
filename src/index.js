@@ -163,6 +163,30 @@ program
       console.log(chalk.white('  Longest streak:      ') + chalk.magenta.bold(`${stats.longestStreak} day(s)`));
       console.log(chalk.white('  Most productive day:  ') + chalk.cyan.bold(stats.mostProductiveDay));
       console.log(chalk.white('  Most productive hour: ') + chalk.cyan.bold(stats.mostProductiveHour));
+
+      // Duration histogram — group sessions into 5 buckets and render a bar
+      const buckets = [
+        { label: ' 1-25m ', min: 1,   max: 25  },
+        { label: '26-50m ', min: 26,  max: 50  },
+        { label: '51-75m ', min: 51,  max: 75  },
+        { label: '76-100m', min: 76,  max: 100 },
+        { label: '101-120m', min: 101, max: 120 },
+      ];
+      const maxCount = Math.max(1, ...buckets.map((b) =>
+        sessions.filter((s) => s.duration >= b.min && s.duration <= b.max).length
+      ));
+
+      console.log(chalk.yellow.bold('\n  Duration distribution:\n'));
+      buckets.forEach((b) => {
+        const count = sessions.filter((s) => s.duration >= b.min && s.duration <= b.max).length;
+        const barLen = Math.round((count / maxCount) * 20);
+        const bar = '█'.repeat(barLen) + '░'.repeat(20 - barLen);
+        console.log(
+          chalk.gray(`  ${b.label}  `) +
+          chalk.green(bar) +
+          chalk.white(` ${count}`)
+        );
+      });
     } catch (err) {
       console.error(chalk.red.bold('Error: ') + err.message);
       process.exit(1);
