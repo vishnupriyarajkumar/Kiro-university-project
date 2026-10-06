@@ -30,7 +30,13 @@ program
   .description('Log a completed focus session')
   .requiredOption('-d, --duration <minutes>', 'Session duration in minutes')
   .action(async (description, options) => {
-    const duration = parseInt(options.duration, 10);
+    // Reject non-numeric or float duration strings before parseInt silently truncates them
+    const rawDuration = options.duration;
+    if (!/^\d+$/.test(String(rawDuration).trim())) {
+      console.error(chalk.red.bold('Error: ') + 'Duration must be a whole number (e.g. --duration 25).');
+      process.exit(1);
+    }
+    const duration = parseInt(rawDuration, 10);
     const { valid, errors } = validateSession(description, duration);
 
     if (!valid) {
