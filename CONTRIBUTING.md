@@ -97,3 +97,27 @@ npm test
 - Duration must be an integer between 1 and 120 minutes
 - Description must be a non-empty string after trimming
 - Sessions are append-only — never mutate an existing session's `id`, `date`, or `startTime`
+
+## Recently Added Features
+
+These were added after the initial build. When working in these areas, keep the same patterns:
+
+### `filterByDateRange(sessions, fromDate, toDate)` — `src/sessions.js`
+
+Filters sessions whose `date` falls within `[fromDate, toDate]` inclusive. Both dates are `YYYY-MM-DD` strings. Returns an empty array when `fromDate > toDate`. Has 8 unit tests in `tests/unit/sessions.test.js` and 6 property tests in `tests/property/sessions.test.js`.
+
+### `summary(sessions, today)` — `src/stats.js`
+
+Single-call convenience wrapper that returns all key stats in one object: `totalSessions`, `totalMinutes`, `averageDuration`, `currentStreak`, `longestStreak`, `mostProductiveDay`, `mostProductiveHour`. Use this instead of calling individual stat functions separately. Has 9 unit tests in `tests/unit/stats.test.js`.
+
+### `list --count` — CLI
+
+The `list` command now accepts a `--count` flag that prints only the total number of matching sessions as a plain number. Useful for scripting. Example: `node src/index.js list --count` or `node src/index.js list --since 2026-10-01 --count`.
+
+### `GET /api/sessions` — `src/server.js`
+
+Fetches all sessions with optional `?from=YYYY-MM-DD`, `?to=YYYY-MM-DD`, and `?limit=N` query params. The `?limit=N` param returns the most recent N sessions. All query params are validated before any I/O is performed.
+
+### `GET /api/stats/streak` — `src/server.js`
+
+Returns `currentStreak`, `longestStreak`, and `totalDaysLogged` in one JSON response. Use this endpoint when you only need streak data and want to avoid loading the full stats payload.
