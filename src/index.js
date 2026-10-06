@@ -264,6 +264,7 @@ program
   .command('list')
   .description('List all sessions, optionally filtered from a start date')
   .option('--since <date>', 'Show sessions from this date onwards (YYYY-MM-DD)')
+  .option('--count', 'Print only the total session count, no details')
   .action(async (options) => {
     // Validate --since format at the CLI boundary
     if (options.since && !/^\d{4}-\d{2}-\d{2}$/.test(options.since)) {
@@ -276,6 +277,12 @@ program
       const filtered = options.since
         ? sessions.filter((s) => s.date >= options.since)
         : sessions;
+
+      // --count: just print the number and exit
+      if (options.count) {
+        console.log(chalk.green.bold(`${filtered.length}`));
+        return;
+      }
 
       const label = options.since
         ? `Sessions since ${options.since}`
