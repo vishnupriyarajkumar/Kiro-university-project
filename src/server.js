@@ -186,6 +186,21 @@ async function handleRequest(req, res) {
     return;
   }
 
+  // GET /api/stats/streak — current and longest streak
+  if (pathname === '/api/stats/streak' && method === 'GET') {
+    try {
+      const sessions = await loadSessions();
+      const today    = new Date().toISOString().slice(0, 10);
+      json(res, 200, {
+        today,
+        currentStreak: currentStreak(sessions, today),
+        longestStreak: longestStreak(sessions),
+        totalDaysLogged: new Set(sessions.map((s) => s.date)).size,
+      });
+    } catch (err) { json(res, 500, { error: err.message }); }
+    return;
+  }
+
   // GET /api/stats/weekly — Mon–Sun daily minutes for bar chart
   if (pathname === '/api/stats/weekly' && method === 'GET') {
     try {
@@ -292,8 +307,10 @@ async function handleRequest(req, res) {
     '/api/sessions',
     '/api/heatmap',
     '/api/stats',
+    '/api/stats/streak',
     '/api/stats/weekly',
     '/api/report',
+    '/api/health',
   ];
   const isKnownApi = knownApiPaths.includes(pathname) || pathname.startsWith('/api/sessions/');
   if (isKnownApi) {
