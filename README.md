@@ -29,16 +29,17 @@ A CLI tool to log your focus sessions, track productivity streaks, and analyze y
 ```
 pomodoro-session-logger/
 ├── src/
-│   ├── index.js        # CLI entry point (Commander)
-│   ├── sessions.js     # Core session logic (pure, no I/O)
-│   ├── storage.js      # MongoDB persistence + JSON backup sync
-│   ├── stats.js        # Analytics and streak calculation
-│   ├── report.js       # Pure Markdown report formatter
-│   ├── server.js       # HTTP web server (REST API + static files)
-│   ├── db.js           # MongoDB connection helpers
-│   ├── seed.js         # Seed script for sample sessions
+│   ├── index.js          # CLI entry point (Commander)
+│   ├── sessions.js       # Core session logic (pure, no I/O)
+│   ├── storage.js        # MongoDB persistence + JSON backup sync
+│   ├── stats.js          # Analytics and streak calculation
+│   ├── report.js         # Pure Markdown report formatter
+│   ├── streakCalendar.js # Pure streak calendar renderer (returns lines array)
+│   ├── server.js         # HTTP web server (REST API + static files)
+│   ├── db.js             # MongoDB connection helpers
+│   ├── seed.js           # Seed script for sample sessions
 │   └── models/
-│       └── Session.js  # Mongoose session schema
+│       └── Session.js    # Mongoose session schema
 ├── client/
 │   ├── index.html      # Dashboard
 │   ├── timer.html      # Pomodoro timer
@@ -104,10 +105,17 @@ node src/index.js today
 # View this week's sessions grouped by day
 node src/index.js week
 
+# List all sessions (optionally filtered from a date)
+node src/index.js list
+node src/index.js list --since 2026-10-01
+
 # Show stats and streaks
 node src/index.js stats
 
-# Show visual 4-week streak calendar
+# Show stats as machine-readable JSON
+node src/index.js stats --json
+
+# Show visual 4-week streak calendar with session badge counts
 node src/index.js streak
 
 # Search sessions by keyword
@@ -124,6 +132,9 @@ node src/index.js export
 
 # Export to a custom path
 node src/index.js export --output ./my-report.md
+
+# Export a specific past week by reference date
+node src/index.js export --week 2026-09-28
 ```
 
 ## Web UI
@@ -140,9 +151,13 @@ Then open `http://localhost:3000` in your browser.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/api/health` | Server health check — status, uptime, timestamp |
 | GET | `/api/sessions/today` | Today's sessions |
 | GET | `/api/sessions/week?date=YYYY-MM-DD` | Week sessions (optional date param) |
-| GET | `/api/stats` | Aggregated stats |
+| GET | `/api/sessions/search?q=keyword` | Search sessions by keyword |
+| GET | `/api/sessions/:id` | Fetch a single session by UUID |
+| GET | `/api/stats` | Aggregated stats (supports JSON output) |
+| GET | `/api/stats/streak` | Current streak, longest streak, and total days logged |
 | GET | `/api/stats/weekly` | Mon–Sun daily minutes for bar chart |
 | GET | `/api/heatmap` | Last 84 days activity heatmap |
 | GET | `/api/report` | Weekly Markdown report |
