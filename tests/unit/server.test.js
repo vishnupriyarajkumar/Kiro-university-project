@@ -284,3 +284,56 @@ describe('GET /api/sessions/today — extended coverage', () => {
     expect(typeof response.totalMinutes).toBe('number');
   });
 });
+
+// ── GET /api/sessions ?from= &to= — filterByDateRange route logic ─────────────
+
+import { filterByDateRange } from '../../src/sessions.js';
+
+const RANGE_SESSIONS = [
+  { id: 'r1', date: '2026-09-28', duration: 25, description: 'Sep session' },
+  { id: 'r2', date: '2026-10-01', duration: 30, description: 'Oct start' },
+  { id: 'r3', date: '2026-10-05', duration: 25, description: 'Oct mid' },
+  { id: 'r4', date: '2026-10-10', duration: 45, description: 'Oct late' },
+  { id: 'r5', date: '2026-10-15', duration: 20, description: 'Oct end' },
+];
+
+describe('GET /api/sessions ?from=&to= — route logic', () => {
+  test('returns only sessions within the from–to range', () => {
+    const result = filterByDateRange(RANGE_SESSIONS, '2026-10-01', '2026-10-10');
+    expect(result).toHaveLength(3);
+    expect(result.map((s) => s.id)).toEqual(['r2', 'r3', 'r4']);
+  });
+
+  test('from and to boundaries are inclusive', () => {
+    const result = filterByDateRange(RANGE_SESSIONS, '2026-09-28', '2026-10-15');
+    expect(result).toHaveLength(5);
+  });
+
+  test('returns empty array when range excludes all sessions', () => {
+    const result = filterByDateRange(RANGE_SESSIONS, '2025-01-01', '2025-12-31');
+    expect(result).toHaveLength(0);
+  });
+
+  test('single-day range returns only that day', () => {
+    const result = filterByDateRange(RANGE_SESSIONS, '2026-10-05', '2026-10-05');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('r3');
+  });
+
+  test('reversed range (from > to) returns empty array', () => {
+    const result = filterByDateRange(RANGE_SESSIONS, '2026-10-10', '2026-10-01');
+    expect(result).toHaveLength(0);
+  });
+
+  test('totalMinutes of range result equals sum of matched durations', () => {
+    const result = filterByDateRange(RANGE_SESSIONS, '2026-10-01', '2026-10-10');
+    expect(totalMinutes(result)).toBe(100); // 30 + 25 + 45
+  });
+
+  test('result count matches the count field the route would return', () => {
+    const result = filterByDateRange(RANGE_SESSIONS, '2026-10-01', '2026-10-15');
+    const responseShape = { count: result.length, sessions: result };
+    expect(responseShape.count).toBe(result.length);
+    expect(responseShape.sessions).toHaveLength(4);
+  });
+});
