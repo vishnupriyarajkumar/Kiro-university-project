@@ -3,7 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 const MIN_DURATION = 1;
 const MAX_DURATION = 120;
 
-/** Validate a session's description and duration. Returns { valid, errors }. */
+/** Validate a session's description and duration. Returns { valid, errors }.
+ * @param {*} description - The session description (must be a non-empty string).
+ * @param {*} duration - The session duration in minutes (must be integer 1–120).
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
 export function validateSession(description, duration) {
   const errors = [];
 
@@ -19,7 +23,11 @@ export function validateSession(description, duration) {
   return { valid: errors.length === 0, errors };
 }
 
-/** Create a new session object from a description and duration. Does not persist. */
+/** Create a new session object from a description and duration. Does not persist.
+ * @param {string} description - The session description (will be trimmed).
+ * @param {number} duration - The session duration in minutes.
+ * @returns {{ id: string, description: string, duration: number, startTime: string, date: string, completed: true }}
+ */
 export function createSession(description, duration) {
   const now = new Date();
   return {
@@ -32,12 +40,20 @@ export function createSession(description, duration) {
   };
 }
 
-/** Filter sessions to only those matching the given YYYY-MM-DD date string. */
+/** Filter sessions to only those matching the given YYYY-MM-DD date string.
+ * @param {object[]} sessions - Array of session objects.
+ * @param {string} date - The date string to match (YYYY-MM-DD).
+ * @returns {object[]}
+ */
 export function filterByDate(sessions, date) {
   return sessions.filter((s) => s.date === date);
 }
 
-/** Delete a session by ID. Returns { found, sessions } where sessions is the updated array. */
+/** Delete a session by ID. Returns { found, sessions } where sessions is the updated array.
+ * @param {object[]} sessions - Array of session objects.
+ * @param {string} id - The UUID of the session to delete.
+ * @returns {{ found: boolean, sessions: object[] }}
+ */
 export function deleteSession(sessions, id) {
   const index = sessions.findIndex((s) => s.id === id);
   if (index === -1) return { found: false, sessions };
@@ -45,7 +61,12 @@ export function deleteSession(sessions, id) {
   return { found: true, sessions: updated };
 }
 
-/** Edit a session's description and/or duration by ID. Returns { found, session, sessions }. */
+/** Edit a session's description and/or duration by ID. Returns { found, session, sessions }.
+ * @param {object[]} sessions - Array of session objects.
+ * @param {string} id - The UUID of the session to edit.
+ * @param {{ description?: string, duration?: number }} updates - Fields to update.
+ * @returns {{ found: boolean, valid?: boolean, errors?: string[], session?: object, sessions: object[] }}
+ */
 export function editSession(sessions, id, updates) {
   const index = sessions.findIndex((s) => s.id === id);
   if (index === -1) return { found: false, sessions };
@@ -62,13 +83,21 @@ export function editSession(sessions, id, updates) {
   return { found: true, valid: true, session: updated, sessions: updatedSessions };
 }
 
-/** Search sessions by keyword in description (case-insensitive). */
+/** Search sessions by keyword in description (case-insensitive).
+ * @param {object[]} sessions - Array of session objects.
+ * @param {string} keyword - The search keyword.
+ * @returns {object[]}
+ */
 export function searchSessions(sessions, keyword) {
   const lower = keyword.toLowerCase();
   return sessions.filter((s) => s.description.toLowerCase().includes(lower));
 }
 
-/** Filter sessions to those within the Mon–Sun week containing referenceDate (YYYY-MM-DD). */
+/** Filter sessions to those within the Mon–Sun week containing referenceDate (YYYY-MM-DD).
+ * @param {object[]} sessions - Array of session objects.
+ * @param {string} referenceDate - Any date within the target week (YYYY-MM-DD).
+ * @returns {object[]}
+ */
 export function filterByWeek(sessions, referenceDate) {
   const ref = new Date(referenceDate + 'T00:00:00.000Z');
   // Get Monday of the week (getUTCDay: 0=Sun, 1=Mon ... 6=Sat)
