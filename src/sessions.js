@@ -84,3 +84,15 @@ export function filterByWeek(sessions, referenceDate) {
 
   return sessions.filter((s) => s.date >= mondayStr && s.date <= sundayStr);
 }
+
+/**
+ * Filter sessions whose date falls within [fromDate, toDate] inclusive.
+ * Both dates must be YYYY-MM-DD strings.
+ * @param {object[]} sessions - Array of session objects.
+ * @param {string} fromDate - Start date (YYYY-MM-DD), inclusive.
+ * @param {string} toDate - End date (YYYY-MM-DD), inclusive.
+ * @returns {object[]}
+ */
+export function filterByDateRange(sessions, fromDate, toDate) {
+  return sessions.filter((s) => s.date >= fromDate && s.date <= toDate);
+}

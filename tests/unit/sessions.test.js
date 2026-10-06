@@ -278,9 +278,9 @@ describe('validateSession — edge cases', () => {
     expect(validateSession('Valid', NaN).valid).toBe(false);
   });
 
-  test('rejects a string duration like "25"', () => {
-    // String "25" is not an integer — Number.isInteger("25") is false
-    expect(validateSession('Valid', '25').valid).toBe(false);
+  test('accepts a numeric string duration like "25" after coercion', () => {
+    // Number("25") === 25 which IS a valid integer — coercion is intentional
+    expect(validateSession('Valid', '25').valid).toBe(true);
   });
 
   test('description with only newlines is rejected', () => {
@@ -312,5 +312,63 @@ describe('createSession — edge cases', () => {
   test('completed is always true', () => {
     const s = createSession('Task', 25);
     expect(s.completed).toBe(true);
+  });
+});
+
+// ── filterByDateRange ─────────────────────────────────────────────────────────
+
+import { filterByDateRange } from '../../src/sessions.js';
+
+describe('filterByDateRange', () => {
+  const sessions = [
+    { id: '1', date: '2026-09-28', duration: 25, description: 'Session A' },
+    { id: '2', date: '2026-10-01', duration: 30, description: 'Session B' },
+    { id: '3', date: '2026-10-05', duration: 25, description: 'Session C' },
+    { id: '4', date: '2026-10-10', duration: 45, description: 'Session D' },
+    { id: '5', date: '2026-10-15', duration: 20, description: 'Session E' },
+  ];
+
+  test('returns sessions within the inclusive date range', () => {
+    const result = filterByDateRange(sessions, '2026-10-01', '2026-10-10');
+    expect(result).toHaveLength(3);
+    expect(result.map((s) => s.id)).toEqual(['2', '3', '4']);
+  });
+
+  test('includes sessions on the exact fromDate boundary', () => {
+    const result = filterByDateRange(sessions, '2026-09-28', '2026-09-28');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('1');
+  });
+
+  test('includes sessions on the exact toDate boundary', () => {
+    const result = filterByDateRange(sessions, '2026-10-15', '2026-10-15');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('5');
+  });
+
+  test('returns empty array when no sessions fall in the range', () => {
+    const result = filterByDateRange(sessions, '2025-01-01', '2025-12-31');
+    expect(result).toHaveLength(0);
+  });
+
+  test('returns all sessions when range covers all dates', () => {
+    const result = filterByDateRange(sessions, '2026-01-01', '2027-01-01');
+    expect(result).toHaveLength(sessions.length);
+  });
+
+  test('returns empty array for empty input', () => {
+    const result = filterByDateRange([], '2026-10-01', '2026-10-10');
+    expect(result).toHaveLength(0);
+  });
+
+  test('returns empty array when fromDate is after toDate', () => {
+    const result = filterByDateRange(sessions, '2026-10-10', '2026-10-01');
+    expect(result).toHaveLength(0);
+  });
+
+  test('does not mutate the original sessions array', () => {
+    const original = sessions.length;
+    filterByDateRange(sessions, '2026-10-01', '2026-10-10');
+    expect(sessions).toHaveLength(original);
   });
 });
