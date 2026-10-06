@@ -125,3 +125,24 @@ export function mostProductiveHour(sessions) {
   const displayHour = bestHour % 12 === 0 ? 12 : bestHour % 12;
   return `${displayHour} ${period}`;
 }
+
+/**
+ * Returns a single object containing all key productivity stats for a session array.
+ * Convenience wrapper used by the CLI stats command and the API /api/stats route.
+ * @param {object[]} sessions - Array of session objects.
+ * @param {string} today - Today's date as YYYY-MM-DD (used for currentStreak).
+ * @returns {{ totalSessions: number, totalMinutes: number, averageDuration: number,
+ *             currentStreak: number, longestStreak: number,
+ *             mostProductiveDay: string, mostProductiveHour: string }}
+ */
+export function summary(sessions, today) {
+  return {
+    totalSessions:      sessions.length,
+    totalMinutes:       totalMinutes(sessions),
+    averageDuration:    averageDuration(sessions),
+    currentStreak:      currentStreak(sessions, today),
+    longestStreak:      longestStreak(sessions),
+    mostProductiveDay:  mostProductiveDay(sessions),
+    mostProductiveHour: mostProductiveHour(sessions),
+  };
+}
