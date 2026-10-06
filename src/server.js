@@ -241,6 +241,48 @@ async function handleRequest(req, res) {
     return;
   }
 
+  // GET /api/sessions?from=YYYY-MM-DD&to=YYYY-MM-DD — list all sessions with optional date range
+  if (pathname === '/api/sessions' && method === 'GET') {
+    try {
+      const reqUrl = new URL(req.url, `http://localhost:${PORT}`);
+      const from   = reqUrl.searchParams.get('from');
+      const to     = reqUrl.searchParams.get('to');
+      const limit  = reqUrl.searchParams.get('limit');
+
+      // Validate date format when provided
+      if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) {
+        json(res, 400, { error: 'Invalid "from" date format. Use YYYY-MM-DD.' });
+        return;
+      }
+      if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) {
+        json(res, 400, { error: 'Invalid "to" date format. Use YYYY-MM-DD.' });
+        return;
+      }
+
+      let sessions = await loadSessions();
+
+      // Apply date range filter when params are present
+      if (from || to) {
+        const rangeFrom = from || '0000-01-01';
+        const rangeTo   = to   || '9999-12-31';
+        sessions = sessions.filter((s) => s.date >= rangeFrom && s.date <= rangeTo);
+      }
+
+      // Apply limit when provided
+      if (limit !== null) {
+        const n = parseInt(limit, 10);
+        if (!Number.isInteger(n) || n < 1) {
+          json(res, 400, { error: '"limit" must be a positive integer.' });
+          return;
+        }
+        sessions = sessions.slice(-n); // most recent N
+      }
+
+      json(res, 200, { count: sessions.length, sessions });
+    } catch (err) { json(res, 500, { error: err.message }); }
+    return;
+  }
+
   // POST /api/sessions
   if (pathname === '/api/sessions' && method === 'POST') {
     try {
