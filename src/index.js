@@ -329,8 +329,10 @@ program
       const sessionDates = sessions.map((s) => s.date);
 
       console.log(chalk.yellow.bold('\n🔥 Streak Overview\n'));
-      console.log(chalk.white('  Current streak: ') + chalk.magenta.bold(`${current} day(s)`));
-      console.log(chalk.white('  Longest streak: ') + chalk.magenta.bold(`${longest} day(s)`));
+      console.log(chalk.white('  Current streak:  ') + chalk.magenta.bold(`${current} day(s)`));
+      console.log(chalk.white('  Longest streak:  ') + chalk.magenta.bold(`${longest} day(s)`));
+      console.log(chalk.white('  Total sessions:  ') + chalk.green.bold(`${sessions.length}`));
+      console.log(chalk.white('  Days with focus: ') + chalk.green.bold(`${new Set(sessionDates).size}`));
 
       // Render via the dedicated calendar module
       const calendarLines = renderStreakCalendar(sessionDates, today);
