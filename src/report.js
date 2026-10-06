@@ -1,6 +1,6 @@
 /** Pure formatting module for generating weekly Markdown reports. No file I/O or side effects. */
 
-import { totalMinutes, groupByDay } from './stats.js';
+import { totalMinutes, groupByDay, mostProductiveHour } from './stats.js';
 
 /**
  * Returns the YYYY-MM-DD date string of the Monday of the ISO week
@@ -37,6 +37,7 @@ function buildSummarySection(sessions) {
   const total = totalMinutes(sessions);
   const count = sessions.length;
   const avg = count === 0 ? 0 : roundHalfUp(total / count);
+  const peakHour = mostProductiveHour(sessions);
 
   return [
     '## Summary',
@@ -44,6 +45,7 @@ function buildSummarySection(sessions) {
     `- **Total focus time:** ${total} min`,
     `- **Total sessions:** ${count}`,
     `- **Average session duration:** ${avg} min`,
+    `- **Most productive hour:** ${peakHour}`,
   ].join('\n');
 }
 
