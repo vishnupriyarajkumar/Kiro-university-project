@@ -229,6 +229,57 @@ program
     }
   });
 
+// ── list command (with --since filter) ───────────────────────────────────────
+program
+  .command('list')
+  .description('List all sessions, optionally filtered from a start date')
+  .option('--since <date>', 'Show sessions from this date onwards (YYYY-MM-DD)')
+  .action(async (options) => {
+    // Validate --since format at the CLI boundary
+    if (options.since && !/^\d{4}-\d{2}-\d{2}$/.test(options.since)) {
+      console.error(chalk.red.bold('Error: ') + '--since must be in YYYY-MM-DD format.');
+      process.exit(1);
+    }
+
+    try {
+      const sessions = await loadSessions();
+      const filtered = options.since
+        ? sessions.filter((s) => s.date >= options.since)
+        : sessions;
+
+      const label = options.since
+        ? `Sessions since ${options.since}`
+        : 'All sessions';
+
+      console.log(chalk.yellow.bold(`\n📋 ${label}\n`));
+
+      if (filtered.length === 0) {
+        console.log(chalk.gray('  No sessions found.'));
+        return;
+      }
+
+      const grouped = groupByDay(filtered);
+      const sortedDays = Object.keys(grouped).sort();
+
+      sortedDays.forEach((date) => {
+        const daySessions = grouped[date];
+        console.log(chalk.yellow(`  ${date}`) + chalk.green(` (${totalMinutes(daySessions)} min)`));
+        daySessions.forEach((s) => {
+          console.log(
+            chalk.white(`    · ${s.description}`) +
+            chalk.cyan.bold(` [${s.duration} min]`) +
+            chalk.gray(` — ${s.id}`)
+          );
+        });
+      });
+
+      console.log(chalk.green.bold(`\n  ${filtered.length} session(s) · ${totalMinutes(filtered)} min total`));
+    } catch (err) {
+      console.error(chalk.red.bold('Error: ') + err.message);
+      process.exit(1);
+    }
+  });
+
 // ── search command ───────────────────────────────────────────────────────────
 program
   .command('search <keyword>')
