@@ -139,3 +139,70 @@ describe('mostProductiveDay', () => {
     expect(validDays).toContain(mostProductiveDay(sessions));
   });
 });
+
+// ── summary() ─────────────────────────────────────────────────────────────────
+
+import { summary } from '../../src/stats.js';
+
+const SUMMARY_SESSIONS = [
+  { id: 's1', date: '2026-10-03', duration: 25, startTime: '2026-10-03T09:00:00.000Z', description: 'A', completed: true },
+  { id: 's2', date: '2026-10-04', duration: 30, startTime: '2026-10-04T09:00:00.000Z', description: 'B', completed: true },
+  { id: 's3', date: '2026-10-05', duration: 45, startTime: '2026-10-05T14:00:00.000Z', description: 'C', completed: true },
+];
+
+describe('summary()', () => {
+  test('returns an object with all seven expected keys', () => {
+    const result = summary(SUMMARY_SESSIONS, '2026-10-05');
+    expect(result).toHaveProperty('totalSessions');
+    expect(result).toHaveProperty('totalMinutes');
+    expect(result).toHaveProperty('averageDuration');
+    expect(result).toHaveProperty('currentStreak');
+    expect(result).toHaveProperty('longestStreak');
+    expect(result).toHaveProperty('mostProductiveDay');
+    expect(result).toHaveProperty('mostProductiveHour');
+  });
+
+  test('totalSessions equals the length of the input array', () => {
+    expect(summary(SUMMARY_SESSIONS, '2026-10-05').totalSessions).toBe(3);
+  });
+
+  test('totalMinutes is the sum of all durations', () => {
+    expect(summary(SUMMARY_SESSIONS, '2026-10-05').totalMinutes).toBe(100);
+  });
+
+  test('averageDuration is rounded correctly', () => {
+    // 100 / 3 = 33.3 → rounds to 33
+    expect(summary(SUMMARY_SESSIONS, '2026-10-05').averageDuration).toBe(33);
+  });
+
+  test('currentStreak is 3 when today is the last of three consecutive days', () => {
+    expect(summary(SUMMARY_SESSIONS, '2026-10-05').currentStreak).toBe(3);
+  });
+
+  test('longestStreak is >= currentStreak', () => {
+    const result = summary(SUMMARY_SESSIONS, '2026-10-05');
+    expect(result.longestStreak).toBeGreaterThanOrEqual(result.currentStreak);
+  });
+
+  test('returns zeroed/N-A values for an empty session array', () => {
+    const result = summary([], '2026-10-05');
+    expect(result.totalSessions).toBe(0);
+    expect(result.totalMinutes).toBe(0);
+    expect(result.averageDuration).toBe(0);
+    expect(result.currentStreak).toBe(0);
+    expect(result.longestStreak).toBe(0);
+    expect(result.mostProductiveDay).toBe('N/A');
+    expect(result.mostProductiveHour).toBe('N/A');
+  });
+
+  test('summary is deterministic — same input produces same output', () => {
+    const a = summary(SUMMARY_SESSIONS, '2026-10-05');
+    const b = summary(SUMMARY_SESSIONS, '2026-10-05');
+    expect(a).toEqual(b);
+  });
+
+  test('mostProductiveHour is a valid AM/PM string', () => {
+    const result = summary(SUMMARY_SESSIONS, '2026-10-05');
+    expect(result.mostProductiveHour).toMatch(/^\d{1,2} (AM|PM)$/);
+  });
+});
