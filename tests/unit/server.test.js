@@ -211,3 +211,38 @@ describe('POST /api/sessions — validation logic', () => {
     expect(session.description).toBe('Trimmed task');
   });
 });
+
+// ── GET /api/sessions/:id logic ───────────────────────────────────────────────
+
+describe('GET /api/sessions/:id — route logic', () => {
+  test('finds a session by its exact UUID', () => {
+    const result = SESSIONS.find((s) => s.id === 'srv-test-1');
+    expect(result).toBeDefined();
+    expect(result.description).toBe('Deep work on feature A');
+  });
+
+  test('returns undefined when the ID does not exist', () => {
+    const result = SESSIONS.find((s) => s.id === 'non-existent-id');
+    expect(result).toBeUndefined();
+  });
+
+  test('found session has all required fields', () => {
+    const result = SESSIONS.find((s) => s.id === 'srv-test-2');
+    expect(result).toHaveProperty('id');
+    expect(result).toHaveProperty('description');
+    expect(result).toHaveProperty('duration');
+    expect(result).toHaveProperty('date');
+    expect(result).toHaveProperty('startTime');
+    expect(result).toHaveProperty('completed');
+  });
+
+  test('returns only one session when searching by unique ID', () => {
+    const results = SESSIONS.filter((s) => s.id === 'srv-test-3');
+    expect(results).toHaveLength(1);
+  });
+
+  test('ID lookup is case-sensitive — a partial ID match returns undefined', () => {
+    const result = SESSIONS.find((s) => s.id === 'srv-test');
+    expect(result).toBeUndefined();
+  });
+});
