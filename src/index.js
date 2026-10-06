@@ -362,6 +362,12 @@ async function exportAction(options) {
     process.exit(1);
   }
 
+  // Validate --week format if provided
+  if (options.week !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(options.week)) {
+    console.error(chalk.red.bold('Error: ') + '--week must be in YYYY-MM-DD format.');
+    process.exit(1);
+  }
+
   let sessions;
   try {
     sessions = await loadSessions();
@@ -370,8 +376,8 @@ async function exportAction(options) {
     process.exit(1);
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  const weekSessions = filterByWeek(sessions, today);
+  const referenceDate = options.week ?? new Date().toISOString().slice(0, 10);
+  const weekSessions = filterByWeek(sessions, referenceDate);
 
   // Validate each session; warn and skip invalids rather than aborting
   const validSessions = weekSessions.filter((s) => {
@@ -382,8 +388,8 @@ async function exportAction(options) {
     return valid;
   });
 
-  const markdown = generateWeeklyReport(validSessions, today);
-  const outputPath = options.output ?? path.resolve(`./pomodoro-week-${getMondayDate(today)}.md`);
+  const markdown = generateWeeklyReport(validSessions, referenceDate);
+  const outputPath = options.output ?? path.resolve(`./pomodoro-week-${getMondayDate(referenceDate)}.md`);
 
   try {
     writeMarkdownFile(outputPath, markdown);
@@ -399,6 +405,7 @@ program
   .command('export')
   .description('Export this week\'s focus sessions as a Markdown report')
   .option('-o, --output <path>', 'Output file path')
+  .option('-w, --week <date>', 'Export the week containing this date (YYYY-MM-DD), defaults to today')
   .action(exportAction);
 
 // Connect to DB, run commands, then disconnect cleanly
