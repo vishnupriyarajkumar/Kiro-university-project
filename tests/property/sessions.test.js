@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { validateSession, filterByDate, filterByWeek } from '../../src/sessions.js';
+import { validateSession, filterByDate, filterByWeek, filterByDateRange } from '../../src/sessions.js';
 import { totalMinutes, averageDuration, currentStreak, longestStreak } from '../../src/stats.js';
 
 // ── Arbitraries ──────────────────────────────────────────────────────────────
@@ -191,6 +191,89 @@ describe('Property: longestStreak', () => {
       fc.property(sessionsArb, (sessions) => {
         const uniqueDays = new Set(sessions.map((s) => s.date)).size;
         return longestStreak(sessions) <= uniqueDays;
+      })
+    );
+  });
+});
+
+// ── filterByDateRange property tests ─────────────────────────────────────────
+
+const rangeDateArb = fc.date({
+  min: new Date('2024-01-01'),
+  max: new Date('2027-12-31'),
+}).map((d) => d.toISOString().slice(0, 10));
+
+const rangeSessionArb = fc.record({
+  id: fc.uuid(),
+  description: fc.string({ minLength: 1, maxLength: 60 }).filter((s) => s.trim().length > 0),
+  duration: fc.integer({ min: 1, max: 120 }),
+  date: rangeDateArb,
+  completed: fc.constant(true),
+});
+
+const rangeSessionsArb = fc.array(rangeSessionArb, { maxLength: 40 });
+
+describe('Property: filterByDateRange', () => {
+  test('result is always a subset of the input array', () => {
+    fc.assert(
+      fc.property(rangeSessionsArb, rangeDateArb, rangeDateArb, (sessions, d1, d2) => {
+        const from = d1 <= d2 ? d1 : d2;
+        const to   = d1 <= d2 ? d2 : d1;
+        const result = filterByDateRange(sessions, from, to);
+        return result.every((s) => sessions.includes(s));
+      })
+    );
+  });
+
+  test('result length is always <= input length', () => {
+    fc.assert(
+      fc.property(rangeSessionsArb, rangeDateArb, rangeDateArb, (sessions, d1, d2) => {
+        const from = d1 <= d2 ? d1 : d2;
+        const to   = d1 <= d2 ? d2 : d1;
+        return filterByDateRange(sessions, from, to).length <= sessions.length;
+      })
+    );
+  });
+
+  test('every result session date is within [from, to]', () => {
+    fc.assert(
+      fc.property(rangeSessionsArb, rangeDateArb, rangeDateArb, (sessions, d1, d2) => {
+        const from = d1 <= d2 ? d1 : d2;
+        const to   = d1 <= d2 ? d2 : d1;
+        const result = filterByDateRange(sessions, from, to);
+        return result.every((s) => s.date >= from && s.date <= to);
+      })
+    );
+  });
+
+  test('reversed range (from > to) always returns empty array', () => {
+    fc.assert(
+      fc.property(rangeSessionsArb, rangeDateArb, rangeDateArb, (sessions, d1, d2) => {
+        if (d1 === d2) return true;
+        const from = d1 > d2 ? d1 : d2;
+        const to   = d1 > d2 ? d2 : d1;
+        return filterByDateRange(sessions, from, to).length === 0;
+      })
+    );
+  });
+
+  test('full range covering all possible dates returns all sessions', () => {
+    fc.assert(
+      fc.property(rangeSessionsArb, (sessions) => {
+        const result = filterByDateRange(sessions, '0000-01-01', '9999-12-31');
+        return result.length === sessions.length;
+      })
+    );
+  });
+
+  test('original array is never mutated', () => {
+    fc.assert(
+      fc.property(rangeSessionsArb, rangeDateArb, rangeDateArb, (sessions, d1, d2) => {
+        const from = d1 <= d2 ? d1 : d2;
+        const to   = d1 <= d2 ? d2 : d1;
+        const lengthBefore = sessions.length;
+        filterByDateRange(sessions, from, to);
+        return sessions.length === lengthBefore;
       })
     );
   });
