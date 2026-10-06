@@ -97,6 +97,12 @@ async function handleRequest(req, res) {
     return;
   }
 
+  // GET /api/health — health check
+  if (pathname === '/api/health' && method === 'GET') {
+    json(res, 200, { status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+    return;
+  }
+
   // GET /api/sessions/today
   if (pathname === '/api/sessions/today' && method === 'GET') {
     try {
