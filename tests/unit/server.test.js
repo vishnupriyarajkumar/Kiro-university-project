@@ -246,3 +246,41 @@ describe('GET /api/sessions/:id — route logic', () => {
     expect(result).toBeUndefined();
   });
 });
+
+// ── GET /api/sessions/today — extended coverage ───────────────────────────────
+
+describe('GET /api/sessions/today — extended coverage', () => {
+  test('result sessions all have the same date as the requested date', () => {
+    const date = '2026-10-04';
+    const result = filterByDate(SESSIONS, date);
+    expect(result.every((s) => s.date === date)).toBe(true);
+  });
+
+  test('totalMinutes for today is sum of each session duration', () => {
+    const todaySessions = filterByDate(SESSIONS, '2026-10-04');
+    const expected = todaySessions.reduce((sum, s) => sum + s.duration, 0);
+    expect(totalMinutes(todaySessions)).toBe(expected);
+  });
+
+  test('result does not include sessions from other dates', () => {
+    const result = filterByDate(SESSIONS, '2026-10-04');
+    const otherDate = result.find((s) => s.date !== '2026-10-04');
+    expect(otherDate).toBeUndefined();
+  });
+
+  test('returns an empty array for a future date with no sessions', () => {
+    const result = filterByDate(SESSIONS, '2030-01-01');
+    expect(result).toHaveLength(0);
+    expect(totalMinutes(result)).toBe(0);
+  });
+
+  test('response shape contains date, sessions, and totalMinutes fields', () => {
+    const date = '2026-10-04';
+    const sessions = filterByDate(SESSIONS, date);
+    const response = { date, sessions, totalMinutes: totalMinutes(sessions) };
+    expect(response).toHaveProperty('date', date);
+    expect(response).toHaveProperty('sessions');
+    expect(response).toHaveProperty('totalMinutes');
+    expect(typeof response.totalMinutes).toBe('number');
+  });
+});
